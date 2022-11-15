@@ -28,6 +28,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "../P02/elapsed_time.h"
 #include "make_custom_pdf.c"
 
@@ -71,8 +72,18 @@ typedef struct
   int moves;
   int position;
   int speed;
+  char op;
 } 
 moves_t;
+
+moves_t new_move(unsigned int moves,unsigned int position, int speed, int op){
+  moves_t move;
+  move.moves=moves;
+  move.position=position;
+  move.speed=speed;
+  move.op=op;
+  return move;
+}
 
 typedef struct No
 {
@@ -133,9 +144,9 @@ void pop(Stack *stack) {
 
 
 
-static int braking (int speed)
+static bool braking (int position, int speed)
 { 
-  return speed*(speed + 1)/2; 
+  return speed*(speed + 1)/2 < 1 + _max_road_size_ - position; 
 }
 
 static int limit_speed (int position, int speed)
@@ -171,12 +182,46 @@ static void solution_2(int move_number,int position,int speed,int final_position
   // record move
   solution_1_count++;
   solution_1.positions[move_number] = position;
+  int ops[3]  = {-1,0,1};
 
-  for (int i = 0; i < sizeof(max_road_speed); i++)
+
+  Stack satck = new_stack();
+  moves_t move = new_move(move_number,position,speed,ops[1]);
+  push(&satck, move);
+
+  while (move.position < final_position)
   {
+    if (speed + ops[2] < limit_speed(position, speed + ops[2]) && braking(position, speed + ops[2])) // acelarar
+    {
+      new_speed = speed + ops[2];
+      move = new_move(move_number++,position+new_speed,new_speed,ops[2]);
+      push(&satck, move);
+    }
+    else if (speed + ops[1] == limit_speed(position, speed + ops[1]) && braking(position, speed + ops[2])) // manter
+    {
+      new_speed = speed + ops[1];
+      move = new_move(move_number++,position+new_speed,new_speed,ops[1]);
+      push(&satck, move);
+    }
+    else if (speed + ops[0] == limit_speed(position, speed + ops[0])) // travar
+    {
+      new_speed = speed + ops[0];
+      move = new_move(move_number++,position+new_speed,new_speed,ops[0]);
+      push(&satck, move);
+    } 
+    else // voltar atras 
+    {
+      
+    }
     
     
   }
+  
+
+
+
+ 
+ 
   
   
   
