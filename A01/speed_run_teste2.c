@@ -1,22 +1,3 @@
-//
-// AED, August 2022 (Tomás Oliveira e Silva)
-//
-// First practical assignement (speed run)
-//
-// Compile using either
-//   cc -Wall -O2 -D_use_zlib_=0 solution_speed_run.c -lm
-// or
-//   cc -Wall -O2 -D_use_zlib_=1 solution_speed_run.c -lm -lz
-//
-// Place your student numbers and names here
-//   N.Mec. XXXXXX  Name: XXXXXXX
-//
-
-
-//
-// static configuration
-//
-
 #define _max_road_size_  800  // the maximum problem size
 #define _min_road_speed_   2  // must not be smaller than 1, shouldnot be smaller than 2
 #define _max_road_speed_   9  // must not be larger than 9 (only because of the PDF figure)
@@ -303,72 +284,8 @@ static void example(void)
   printf("\n");
 }
 
-
-//
-// main program
-//
-
-int main(int argc,char *argv[argc + 1])
+int main(int argc, char const *argv[])
 {
-# define _time_limit_  3600.0
-  int n_mec,final_position,print_this_one;
-  char file_name[64];
-
-  // generate the example data
-  if(argc == 2 && argv[1][0] == '-' && argv[1][1] == 'e' && argv[1][2] == 'x')
-  {
     example();
     return 0;
-  }
-  // initialization
-  n_mec = (argc < 2) ? 0xAED2022 : atoi(argv[1]);
-  srandom((unsigned int)n_mec);
-  init_road_speeds();
-  // run all solution methods for all interesting sizes of the problem
-  final_position = 1;
-  solution_1_elapsed_time = 0.0;
-  printf("    + --- ---------------- --------- +\n");
-  printf("    |                plain     2     |\n");
-  printf("--- + --- ---------------- --------- +\n");
-  printf("  n | sol            count  cpu time |\n");
-  printf("--- + --- ---------------- --------- +\n");
-  while(final_position <= _max_road_size_/* && final_position <= 20*/)
-  {
-    print_this_one = (final_position == 10 || final_position == 20 || final_position == 50 || final_position == 100 || final_position == 200 || final_position == 400 || final_position == 800) ? 1 : 0;
-    printf("%3d |",final_position);
-    // first solution method (very bad)
-    if(solution_1_elapsed_time < _time_limit_)
-    {
-      solve_2(final_position);
-      if(print_this_one != 0)
-      {
-        sprintf(file_name,"%03d_1.pdf",final_position);
-        make_custom_pdf_file(file_name,final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"my solution");
-      }
-      printf(" %3d %16lu %9.3e |",solution_1_best.n_moves,solution_1_count,solution_1_elapsed_time);
-    }
-    else
-    {
-      solution_1_best.n_moves = -1;
-      printf("                                |");
-    }
-    // second solution method (less bad)
-    // ...
-
-    // done
-    printf("\n");
-    fflush(stdout);
-    // new final_position
-    if(final_position < 50)
-      final_position += 1;
-    else if(final_position < 100)
-      final_position += 5;
-    else if(final_position < 200)
-      final_position += 10;
-    else
-      final_position += 20;
-  }
-  printf("--- + --- ---------------- --------- +\n");
-  return 0;
-# undef _time_limit_
 }
