@@ -130,9 +130,8 @@ static bool braking (int position, int speed)
   return speed*(speed + 1)/2 > 1 + _max_road_size_ - position; 
 }
 
-static int limit_speed (int position, int speed)
-{
-  int length = position - speed;
+static int limit_speed (int position, int speed){
+  
 
   int max = max_road_speed[position];
 
@@ -155,26 +154,30 @@ static int limit_speed (int position, int speed)
 static solution_t solution_1,solution_1_best;
 static double solution_1_elapsed_time; // time it took to solve the problem
 static unsigned long solution_1_count; // effort dispended solving the problem
+Stack stack;
 
 static void solution_2(int final_position)
 {
-  int speed, new_speed, move_number, position = 0;
+  int speed=0, new_speed=0, move_number=0, position=0;
 
   // record move
+  printf("inicializar");
   
   
   
 
   int ops[3]  = {-1,0,1};
-  Stack satck = new_stack();
+  stack = new_stack();
   moves_t move = new_move(0,0,0,1);
-  push(&satck, move);
+  push(&stack, move);
   
 
   while (move.position < final_position)
-  {    
-    int index = strlen(ops);
+  {  
+    printf("1 ciclo"); 
+    int index = 2;
     while (index>=0)
+    printf("2 ciclo");
     {
       if (index =! 0)
       {
@@ -183,7 +186,7 @@ static void solution_2(int final_position)
         {
           new_speed = speed + ops[index];
           move = new_move(move_number++,position+new_speed,new_speed,ops[index]);
-          push(&satck, move);
+          push(&stack, move);
           break;
         }
       }
@@ -194,12 +197,12 @@ static void solution_2(int final_position)
         {
           new_speed = speed + ops[0];
           move = new_move(move_number++,position+new_speed,new_speed,ops[0]);
-          push(&satck, move);
+          push(&stack, move);
           break;
         } else
         {
-          int op = satck.top->data.op;
-          pop(&satck);  
+          int op = stack.top->data.op;
+          pop(&stack);  
           index=op;
         }
         
@@ -207,40 +210,10 @@ static void solution_2(int final_position)
       solution_1_count++;
       index--;
     }
-    solution_1_count++;
-    
-    /*
-    if (speed + ops[2] < limit_speed(position, speed + ops[2]) && braking(position, speed + ops[2])) // acelarar
-    {
-      new_speed = speed + ops[2];
-      move = new_move(move_number++,position+new_speed,new_speed,ops[2]);
-      push(&satck, move);
-    }
-    else if (speed + ops[1] == limit_speed(position, speed + ops[1]) && braking(position, speed + ops[1])) // manter
-    {
-      new_speed = speed + ops[1];
-      move = new_move(move_number++,position+new_speed,new_speed,ops[1]);
-      push(&satck, move);
-    }
-    else if (speed + ops[0] == limit_speed(position, speed + ops[0]) || braking(position, speed + ops[0])) // travar
-    {
-      new_speed = speed + ops[0];
-      move = new_move(move_number++,position+new_speed,new_speed,ops[0]);
-      push(&satck, move);
-    } 
-    else // voltar atras 
-    {
-      int op = satck.top->data.op;
-      pop(&satck);  
-      op-=1;   
-      
-        
-    }   
-    */
-    
+    solution_1_count++;   
   }
   
-  solution_1.positions[move_number] = satck.top->data.position;
+  solution_1.positions[move_number] = stack.top->data.position;
   solution_1.n_moves = satck.top->data.moves;
   solution_1_best = solution_1; 
   
@@ -273,7 +246,7 @@ static void example(void)
   init_road_speeds();
   final_position = 30;
   solve_2(final_position);
-  make_custom_pdf_file("example.pdf",final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
+  //make_custom_pdf_file("example.pdf",final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
   printf("mad road speeds:");
   for(i = 0;i <= final_position;i++)
     printf(" %d",max_road_speed[i]);

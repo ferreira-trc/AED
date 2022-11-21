@@ -117,18 +117,127 @@ static void solve_1(int final_position)
   solution_1_elapsed_time = cpu_time() - solution_1_elapsed_time;
 }
 
+typedef struct
+{
+  int moves;
+  int position;
+  int speed;
+  char op;
+} 
+moves_t;
+
+moves_t new_move(unsigned int moves,unsigned int position, int speed, int op){
+  moves_t move;
+  move.moves=moves;
+  move.position=position;
+  move.speed=speed;
+  move.op=op;
+  return move;
+}
+
+typedef struct No
+{
+  moves_t data;
+  struct No *next;
+} 
+No_t;
+
+typedef struct {
+  No_t *top, *bottom;
+  unsigned int length;
+} 
+Stack;
+
+Stack new_stack(){
+    Stack stack;
+    stack.top=NULL;
+    stack.bottom=NULL;
+    stack.length=0;
+    return stack;
+}
+
+// inserção no início da stack
+void push(Stack *stack, moves_t data) {
+  No_t *new = (No_t*)malloc(sizeof(No_t)); // cria um novo nó
+  new->data = data;// (*novo).valor = valor
+
+  if(stack->top == NULL) { // a stack está vazia
+    new->next = NULL;
+    stack->top = new;
+    stack->bottom = new;
+  } else { // a stack não está vazia
+    new->next = stack->top;
+    stack->top = new;
+  }
+  stack->length++;
+}
+
+// remover um elemento da stack
+void pop(Stack *stack) {
+  No_t *top = stack->top; // ponteiro para o início da stack
+  No_t * noARemover = NULL; // ponteiro para o nó a ser removido
+
+  // remover 1º elemento
+  noARemover = stack->top;
+  stack->top = noARemover->next;
+
+  if(stack->top == NULL)
+    stack->bottom = NULL;   
+  
+  if(noARemover) {
+      free(noARemover); // libera a memória do nó
+      stack->length--; // decrementa o tamanho da stack
+  }
+}
+
+static int limit_speed (int position, int speed)
+{
+  int length = position - speed;
+
+  int max = max_road_speed[position];
+
+  for (int index = position; index < speed; index++)
+  {
+    if (max < max_road_speed[index])
+    {
+      max = max_road_speed[index];
+    }    
+  } 
+
+  return max; 
+}
+
+static void solution_2(int move_number,int position,int speed,int final_position)
+{
+ 
+}
+
+static void solve_2(int final_position)
+{
+  if(final_position < 1 || final_position > _max_road_size_)
+  {
+    fprintf(stderr,"solve_1: bad final_position\n");
+    exit(1);
+  }
+  solution_1_elapsed_time = cpu_time();
+  solution_1_count = 0ul;
+  solution_1_best.n_moves = final_position + 100;
+  solution_2(0,0,0,final_position);
+  solution_1_elapsed_time = cpu_time() - solution_1_elapsed_time;
+}
+
 
 //
 // example of the slides
 //
 
-static void example(void)
+static void example(int n)
 {
   int i,final_position;
 
   srandom(0xAED2022);
   init_road_speeds();
-  final_position = 30;
+  final_position = n;
   solve_1(final_position);
   make_custom_pdf_file("example.pdf",final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
   printf("mad road speeds:");
@@ -154,8 +263,12 @@ int main(int argc,char *argv[argc + 1])
 
   // generate the example data
   if(argc == 2 && argv[1][0] == '-' && argv[1][1] == 'e' && argv[1][2] == 'x')
-  {   
-    example();    
+  {
+    for (int i = 1; i < 40; i++)
+    {
+      example(i);
+    }
+    
     return 0;
   }
   // initialization
