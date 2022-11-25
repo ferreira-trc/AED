@@ -28,7 +28,6 @@
 
 #include <math.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include "../P02/elapsed_time.h"
 #include "make_custom_pdf.c"
 
@@ -67,104 +66,6 @@ typedef struct
 }
 solution_t;
 
-typedef struct
-{
-  int moves;
-  int position;
-  int speed;
-  char op;
-} 
-moves_t;
-
-moves_t new_move(unsigned int moves,unsigned int position, int speed, int op){
-  moves_t move;
-  move.moves=moves;
-  move.position=position;
-  move.speed=speed;
-  move.op=op;
-  return move;
-}
-
-typedef struct No
-{
-  moves_t data;
-  struct No *next;
-} 
-No_t;
-
-typedef struct {
-  No_t *top, *bottom;
-  unsigned int length;
-} 
-Stack;
-
-Stack new_stack(){
-    Stack stack;
-    stack.top=NULL;
-    stack.bottom=NULL;
-    stack.length=0;
-    return stack;
-}
-
-// inserção no início da stack
-void push(Stack *stack, moves_t data) {
-  No_t *new = (No_t*)malloc(sizeof(No_t)); // cria um novo nó
-  new->data = data;// (*novo).valor = valor
-
-  if(stack->top == NULL) { // a stack está vazia
-    new->next = NULL;
-    stack->top = new;
-    stack->bottom = new;
-  } else { // a stack não está vazia
-    new->next = stack->top;
-    stack->top = new;
-  }
-  stack->length++;
-}
-
-// remover um elemento da stack
-void pop(Stack *stack) {
-  
-  No_t * noARemover = NULL; // ponteiro para o nó a ser removido
-
-  // remover 1º elemento
-  noARemover = stack->top;
-  stack->top = noARemover->next;
-
-  if(stack->top == NULL)
-    stack->bottom = NULL;   
-  
-  if(noARemover) {
-      free(noARemover); // libera a memória do nó
-      stack->length--; // decrementa o tamanho da stack
-  }
-}
-
-
-
-
-
-static bool braking (int position, int speed)
-{ 
-  return speed*(speed + 1)/2 > 1 + _max_road_size_ - position; 
-}
-
-static int limit_speed (int position, int speed)
-{
-  
-  int max = max_road_speed[position];
-
-  for (int index = position; index < speed; index++)
-  {
-    if (max < max_road_speed[index])
-    {
-      max = max_road_speed[index];
-    }    
-  } 
-
-  return max; 
-}
-
 
 //
 // the (very inefficient) recursive solution given to the students
@@ -174,102 +75,78 @@ static solution_t solution_1,solution_1_best;
 static double solution_1_elapsed_time; // time it took to solve the problem
 static unsigned long solution_1_count; // effort dispended solving the problem
 
-static void solution_2(int final_position)
+static int limit_speed (int position, int speed)
 {
-  int speed=0, new_speed=0, move_number=0, position = 0;
-
-  // record move
-  int ops[3]  = {-1,0,1};
-  Stack satck = new_stack();
-  moves_t move = new_move(0,0,0,1);
-  push(&satck, move);
   
+  int min = max_road_speed[position];
 
-  while (satck.top->data.position < final_position)
-  {    
-    int index = strlen(ops);
-    while (index>=0)
-    { 
-      new_speed = speed + ops[index];
-      if (index =! 0)
-      {
-        
-        if (speed + ops[index] < limit_speed(position, new_speed) && braking(position, new_speed) == false) // acelarar ou manter
-        {          
-          move = new_move(move_number++,position+new_speed,new_speed,ops[index]);
-          push(&satck, move);
-          break;
-        }
-      }
-
-      if (index == 0)
-      {
-        if (speed + ops[0] == limit_speed(position, new_speed)) // travar
-        {
-          move = new_move(move_number++,position+new_speed,new_speed,ops[0]);
-          push(&satck, move);
-          break;
-        } else
-        {
-          int op = satck.top->data.op;
-          pop(&satck);  
-          index=op;
-        }
-        
-      }
-      solution_1_count++;
-      index--;
+  for (int index = position; index < speed; index++)
+  {
+    if (max_road_speed[index] == _min_road_speed_)
+    {
+      min = _min_road_speed_;
+      break;
     }
-    solution_1_count++;
     
-    /*
-    if (speed + ops[2] < limit_speed(position, speed + ops[2]) && braking(position, speed + ops[2])) // acelarar
+    if (min > max_road_speed[index])
     {
-      new_speed = speed + ops[2];
-      move = new_move(move_number++,position+new_speed,new_speed,ops[2]);
-      push(&satck, move);
-    }
-    else if (speed + ops[1] == limit_speed(position, speed + ops[1]) && braking(position, speed + ops[1])) // manter
-    {
-      new_speed = speed + ops[1];
-      move = new_move(move_number++,position+new_speed,new_speed,ops[1]);
-      push(&satck, move);
-    }
-    else if (speed + ops[0] == limit_speed(position, speed + ops[0]) || braking(position, speed + ops[0])) // travar
-    {
-      new_speed = speed + ops[0];
-      move = new_move(move_number++,position+new_speed,new_speed,ops[0]);
-      push(&satck, move);
-    } 
-    else // voltar atras 
-    {
-      int op = satck.top->data.op;
-      pop(&satck);  
-      op-=1;   
-      
-        
-    }   
-    */
-    
-  }
-  
-  solution_1.positions[move_number] = satck.top->data.position;
-  solution_1.n_moves = satck.top->data.moves;
-  solution_1_best = solution_1; 
-  
+      min = max_road_speed[index];
+    }    
+  } 
+
+  return min; 
 }
 
-static void solve_2(int final_position)
+static void solution_1_recursion(int move_number,int position,int speed,int final_position)
+{
+  //int i;
+  int new_speed;
+
+  // record move
+  solution_1_count++;
+  solution_1.positions[move_number] = position;
+  // is it a solution?
+  if(position == final_position && speed == 1)  
+  {
+    //printf("admisivel\n");
+    // is it a better solution?
+    if(move_number < solution_1_best.n_moves)
+    {
+      //printf("best\n");
+      solution_1_best = solution_1;
+      solution_1_best.n_moves = move_number;
+    }
+    return;
+  }
+  // no, try all legal speeds
+  for(new_speed = speed - 1;new_speed <= speed + 1;new_speed++)
+    if(new_speed >= 1 && new_speed <= _max_road_speed_ && position + new_speed <= final_position)
+    // verifica que a veloc. é =>1 que a nova veloc. nao ultrupassa o limite max e o movimento nao ultrapassa a fronteira
+    {
+      //for(i = 0;i <= new_speed && new_speed <= max_road_speed[position + i];i++);
+      if(new_speed <= limit_speed(position,new_speed)) // verificar limite de veloc.
+      {
+        //printf("i=%d\nspeed=%d\nnew_speed=%d\nP=%d\n\n", i, speed, new_speed, position);
+        solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+      }  
+    }
+
+}
+
+static void solve_1(int final_position)
 {
   if(final_position < 1 || final_position > _max_road_size_)
   {
-    fprintf(stderr,"solve_2: bad final_position\n");
+    fprintf(stderr,"solve_1: bad final_position\n");
     exit(1);
   }
   solution_1_elapsed_time = cpu_time();
+  //printf("%f\n", solution_1_elapsed_time);
   solution_1_count = 0ul;
+  //printf("%ld\n", solution_1_count);
   solution_1_best.n_moves = final_position + 100;
-  solution_2(final_position);
+  //printf("%d\n", solution_1_best.n_moves);
+  solution_1_recursion(0,0,0,final_position);
   solution_1_elapsed_time = cpu_time() - solution_1_elapsed_time;
 }
 
@@ -284,8 +161,8 @@ static void example(void)
 
   srandom(0xAED2022);
   init_road_speeds();
-  final_position = 30;
-  solve_2(final_position);
+  final_position = 5;
+  solve_1(final_position);
   make_custom_pdf_file("example.pdf",final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
   printf("mad road speeds:");
   for(i = 0;i <= final_position;i++)
@@ -310,8 +187,8 @@ int main(int argc,char *argv[argc + 1])
 
   // generate the example data
   if(argc == 2 && argv[1][0] == '-' && argv[1][1] == 'e' && argv[1][2] == 'x')
-  {
-    example();
+  {   
+    example();    
     return 0;
   }
   // initialization
@@ -322,7 +199,7 @@ int main(int argc,char *argv[argc + 1])
   final_position = 1;
   solution_1_elapsed_time = 0.0;
   printf("    + --- ---------------- --------- +\n");
-  printf("    |                plain     2     |\n");
+  printf("    |                plain recursion |\n");
   printf("--- + --- ---------------- --------- +\n");
   printf("  n | sol            count  cpu time |\n");
   printf("--- + --- ---------------- --------- +\n");
@@ -333,11 +210,11 @@ int main(int argc,char *argv[argc + 1])
     // first solution method (very bad)
     if(solution_1_elapsed_time < _time_limit_)
     {
-      solve_2(final_position);
+      solve_1(final_position);
       if(print_this_one != 0)
       {
         sprintf(file_name,"%03d_1.pdf",final_position);
-        make_custom_pdf_file(file_name,final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"my solution");
+        make_custom_pdf_file(file_name,final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
       }
       printf(" %3d %16lu %9.3e |",solution_1_best.n_moves,solution_1_count,solution_1_elapsed_time);
     }

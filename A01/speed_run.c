@@ -52,6 +52,7 @@ static void init_road_speeds(void)
     if(max_road_speed[i] > _max_road_speed_)
       max_road_speed[i] = _max_road_speed_;
   }
+  max_road_speed[16] = _min_road_speed_;
 }
 
 
@@ -99,20 +100,20 @@ static void solution_1_recursion(int move_number,int position,int speed,int fina
     {
       for(i = 0;i <= new_speed && new_speed <= max_road_speed[position + i];i++);
       if(i > new_speed)
-        solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+        solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);        
     }
 }
 
 static void solve_1(int final_position)
-{
+{   
   if(final_position < 1 || final_position > _max_road_size_)
   {
     fprintf(stderr,"solve_1: bad final_position\n");
     exit(1);
-  }
+  }  
   solution_1_elapsed_time = cpu_time();
   solution_1_count = 0ul;
-  solution_1_best.n_moves = final_position + 100;
+  solution_1_best.n_moves = final_position + 100;  
   solution_1_recursion(0,0,0,final_position);
   solution_1_elapsed_time = cpu_time() - solution_1_elapsed_time;
 }
@@ -128,7 +129,7 @@ static void example(void)
 
   srandom(0xAED2022);
   init_road_speeds();
-  final_position = 30;
+  scanf("%d", &final_position);
   solve_1(final_position);
   make_custom_pdf_file("example.pdf",final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
   printf("mad road speeds:");
@@ -138,6 +139,8 @@ static void example(void)
   printf("positions:");
   for(i = 0;i <= solution_1_best.n_moves;i++)
     printf(" %d",solution_1_best.positions[i]);
+  printf("\n");
+  printf("moves: %d", solution_1_best.n_moves);
   printf("\n");
 }
 
@@ -154,8 +157,8 @@ int main(int argc,char *argv[argc + 1])
 
   // generate the example data
   if(argc == 2 && argv[1][0] == '-' && argv[1][1] == 'e' && argv[1][2] == 'x')
-  {   
-    example();    
+  {
+    example();
     return 0;
   }
   // initialization
