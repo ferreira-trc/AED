@@ -192,7 +192,7 @@ static bool no_execed_road_length (int position, int speed, int final_position)
 
 static bool time_to_slow_down (int position, int speed, int final_position)
 { 
-  return speed*(speed + 1)/2 >= final_position - position; // duvidas 1+ final_position - position
+  return speed*(speed + 1)/2 <= final_position - position; // duvidas 1+ final_position - position
 }
 
 static int option (int position, int speed, int final_position)
@@ -322,8 +322,7 @@ static void solution_3(int move_number,int position,int speed,int final_position
       if (no_execed_limit_speed(position,speed-1,final_position) && speed*(speed + 1)/2 > final_position - position)
       {
         //printf("nao ultrupassa o limite -> seguir em frente\n");
-        new_speed=speed-1;
-        update_data(solution_3_data,move_number,position,speed,new_speed);
+        new_speed=speed-1;        
         position+=new_speed;
         speed=new_speed;
         solution_3_data.n_moves=++move_number;
@@ -331,8 +330,7 @@ static void solution_3(int move_number,int position,int speed,int final_position
       }
       else if (no_execed_limit_speed(position,speed,final_position) && speed*(speed + 1)/2 == final_position - position)
       {
-        new_speed=speed;
-        update_data(solution_3_data,move_number,position,speed,new_speed);
+        new_speed=speed;        
         position+=new_speed;
         speed=new_speed;
         solution_3_data.n_moves=++move_number;
@@ -341,7 +339,6 @@ static void solution_3(int move_number,int position,int speed,int final_position
       else
       {
         //printf("ultrupassa o limite -> Nao é possivel seguir em frente -> voltar atras\n");
-        go_back(solution_3_data, move_number, position, speed, new_speed);
         solution_3_data.positions[move_number]=0;
         move_number--;
         solution_3_data.n_moves=move_number;
@@ -359,8 +356,7 @@ static void solution_3(int move_number,int position,int speed,int final_position
       {
       case 1:
         //printf("seguir em frente -> acelarar\n");
-        new_speed=speed+1;
-        update_data(solution_3_data,move_number,position,speed,new_speed);
+        new_speed=speed+1;        
         position+=new_speed;
         speed=new_speed;
         //printf("%d\n", solution_3_data.n_moves);
@@ -372,8 +368,7 @@ static void solution_3(int move_number,int position,int speed,int final_position
         break;
       case 0:
         //printf("seguir em frente -> manter\n");
-        new_speed=speed;
-        update_data(solution_3_data,move_number,position,speed,new_speed);
+        new_speed=speed;        
         position+=new_speed;
         speed=new_speed;
         //printf("%d\n", solution_3_data.n_moves);
@@ -384,8 +379,7 @@ static void solution_3(int move_number,int position,int speed,int final_position
         break;
       case -1:
         //printf("seguir em frente -> travar\n");
-        new_speed=speed-1;
-        update_data(solution_3_data,move_number,position,speed,new_speed);
+        new_speed=speed-1;        
         position+=new_speed;
         speed=new_speed;
         solution_3_data.n_moves=++move_number;
@@ -394,8 +388,7 @@ static void solution_3(int move_number,int position,int speed,int final_position
         break;
       
       default:
-        //printf("Nao é possivel seguir em frente -> voltar atras\n");
-        go_back(solution_3_data, move_number, position, speed, new_speed);
+        //printf("Nao é possivel seguir em frente -> voltar atras\n");        
         solution_3_data.positions[move_number]=0;
         move_number--;
         solution_3_data.n_moves=move_number;
