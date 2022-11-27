@@ -7,9 +7,14 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
+                "-Wall",
+                "-O2",
+                "-D_use_zlib_=1",
                 "${file}",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
+                "${fileDirname}/${fileBasenameNoExtension}.exe",
+                "-lm",
+                "-lz"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -21,6 +26,18 @@
                 "kind": "build",
                 "isDefault": true
             },
+            "detail": "Tarefa gerada pelo Depurador."
+        },
+        {
+            "type": "shell",
+            "label": "Run this C Program",
+            "command": "/usr/bin/gcc-9 -fdiagnostics-color=always -g -Wall -O2 -D_use_zlib_=1 ${file} -o ${fileDirname}/${fileBasenameNoExtension}.exe -lm -lz &&${fileDirname}/${fileBasenameNoExtension}.exe",
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],           
             "detail": "Tarefa gerada pelo Depurador."
         }
     ],

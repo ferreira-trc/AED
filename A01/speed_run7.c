@@ -53,7 +53,6 @@ static void init_road_speeds(void)
     if(max_road_speed[i] > _max_road_speed_)
       max_road_speed[i] = _max_road_speed_;
   }
- 
 }
 
 
@@ -76,6 +75,7 @@ solution_t;
 static solution_t solution_1,solution_1_best;
 static double solution_1_elapsed_time; // time it took to solve the problem
 static unsigned long solution_1_count; // effort dispended solving the problem
+static int solution_memory[1 + _max_road_size_][1 + _max_road_size_][_max_road_speed_]; // solutions 0.._max_road_size_
 
 static bool no_execed_limit_speed (int position, int speed, int final_position)
 {  
@@ -97,23 +97,23 @@ static bool no_execed_limit_speed (int position, int speed, int final_position)
   return speed <= min; 
 }
 
-static bool is_viable (int position, int speed, int final_position)
-{ 
-  int braking_dist = speed*(speed + 1)/2;
-  int space_to_brake = final_position - position;
-  return braking_dist <= space_to_brake; // duvidas 1+ final_position - position
-}
-
 static bool no_execed_road_length (int position, int speed, int final_position)
 {
   return position+speed <= final_position;
 }
 
 
-static void solution_2_recursion(int move_number,int position,int speed,int final_position)
+static void solution_1_recursion(int move_number,int position,int speed,int final_position)
 {
   int i,new_speed;
 
+  //printf("final_position: %d", final_position);
+
+  if(solution_memory[final_position][position][speed] != NULL){
+      solution_1_best.n_moves = solution_memory[final_position][position][speed];
+      return;
+  }
+    
   // record move
   solution_1_count++;
   solution_1.positions[move_number] = position;
@@ -125,12 +125,12 @@ static void solution_2_recursion(int move_number,int position,int speed,int fina
     {
       solution_1_best = solution_1;
       solution_1_best.n_moves = move_number;
+      
     }
+    solution_memory[final_position][position][speed] = move_number;
     return;
-  }  
-  
-  // restrição de algumas possibilidades 
-  
+  }
+  // no, try all legal speeds
   if (speed*(speed + 1)/2 < final_position - position)
   {
     for(new_speed = speed - 1;new_speed <= speed + 1;new_speed++)
@@ -139,7 +139,7 @@ static void solution_2_recursion(int move_number,int position,int speed,int fina
       {                 
         if(no_execed_limit_speed(position,new_speed,final_position))
         {              
-        solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+        solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);
         }             
       }
     }  
@@ -153,7 +153,7 @@ static void solution_2_recursion(int move_number,int position,int speed,int fina
       {                 
         if(no_execed_limit_speed(position,new_speed,final_position))
         {              
-        solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+        solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);
         }             
       }
     }  
@@ -167,23 +167,23 @@ static void solution_2_recursion(int move_number,int position,int speed,int fina
     {                 
       if(no_execed_limit_speed(position,new_speed,final_position))
       {              
-      solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+      solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);
       }             
     }      
-  }    
+  }
 }
 
-static void solve_2(int final_position)
-{   
+static void solve_1(int final_position)
+{
   if(final_position < 1 || final_position > _max_road_size_)
   {
     fprintf(stderr,"solve_1: bad final_position\n");
     exit(1);
-  }  
+  }
   solution_1_elapsed_time = cpu_time();
   solution_1_count = 0ul;
-  solution_1_best.n_moves = final_position + 100;  
-  solution_2_recursion(0,0,0,final_position);
+  solution_1_best.n_moves = final_position + 100;
+  solution_1_recursion(0,0,0,final_position);
   solution_1_elapsed_time = cpu_time() - solution_1_elapsed_time;
 }
 
@@ -195,29 +195,18 @@ static void solve_2(int final_position)
 static void example(void)
 {
   int i,final_position;
-  const char* name = "example";
-  const char* ext = ".pdf";
-  char fps[4];
-  char name_pdf[30];
-
-  scanf("%d", &final_position);
-  sprintf(fps, "%3d", final_position);
-  strcat(strcpy(name_pdf,name),fps);
-  strcat(name_pdf,ext);
 
   srandom(0xAED2022);
-  init_road_speeds();  
-  solve_2(final_position);  
-  make_custom_pdf_file(name_pdf,final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
+  init_road_speeds();
+  final_position = 30;
+  solve_1(final_position);
+
+  make_custom_pdf_file("example.pdf",final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
   printf("mad road speeds:");
   for(i = 0;i <= final_position;i++)
     printf(" %d",max_road_speed[i]);
   printf("\n");
-  printf("positions:");
-  for(i = 0;i <= solution_1_best.n_moves;i++)
-    printf(" %d",solution_1_best.positions[i]);
-  printf("\n");
-  printf("moves: %d", solution_1_best.n_moves);
+  
   printf("\n");
 }
 
@@ -257,7 +246,7 @@ int main(int argc,char *argv[argc + 1])
     // first solution method (very bad)
     if(solution_1_elapsed_time < _time_limit_)
     {
-      solve_2(final_position);
+      solve_1(final_position);
       if(print_this_one != 0)
       {
         sprintf(file_name,"%03d_1.pdf",final_position);

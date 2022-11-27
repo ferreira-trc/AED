@@ -215,7 +215,6 @@ static int option (int position, int speed, int final_position)
   {
     c = -2; // -2 sera voltar a tras
   }
-
   return c;
 }
 

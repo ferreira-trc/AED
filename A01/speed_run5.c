@@ -60,14 +60,19 @@ static void init_road_speeds(void)
 //
 // description of a solution
 //
+typedef struct moves
+{
+  unsigned int position;
+  unsigned int speed;
+}
+moves_t;
 
 typedef struct
 {
   int n_moves;                         // the number of moves (the number of positions is one more than the number of moves)
-  int positions[1 + _max_road_size_];  // the positions (the first one must be zero)
+  moves_t positions[1 + _max_road_size_];  // the positions (the first one must be zero)
 }
 solution_t;
-
 
 //
 // the (very inefficient) recursive solution given to the students
@@ -110,73 +115,278 @@ static bool no_execed_road_length (int position, int speed, int final_position)
 }
 
 
-static void solution_3(int move_number,int position,int speed,int final_position)
+
+static int braking_dist(int speed)
 {
-  int new_speed;  
+  return speed*(speed + 1)/2;
+}
+
+static int space_to_brake(int position, int final_position)
+{
+  return final_position - position;
+}
+
+static int option (int position, int speed, int final_position)
+{
+  int op;
+  if (braking_dist(speed) > space_to_brake(position,final_position))
+  {
+    // t
+    op = 1;
+  }
+  else if (braking_dist(speed) == space_to_brake(position,final_position))
+  {
+    // m t
+    op = 2;
+  }
+  else
+  {
+    // a m t
+    op = 3;
+  }
+  
+  return op;
+}
+
+static void solution3(int move_number,int position,int speed,int final_position)
+{
+  int new_speed;
+  char n;  
   
   // restrição de algumas possibilidades 
 
-  while (position == final_position && speed == 1)
-  { 
-    
-    if (speed*(speed + 1)/2 < final_position - position)
-    {
-        for(new_speed = speed+1;new_speed >= speed-1;new_speed--)
-        {
-            if(new_speed >= 1 && new_speed <= _max_road_speed_ && position + new_speed <= final_position)
-            {
-               if(no_execed_limit_speed(position,new_speed,final_position))
-                {              
-                    position+=new_speed;
-                    speed=new_speed;
-                    move_number+=1;
-                    solution_1.positions[move_number] = position;
-                    break; 
-                } 
-            }  
-        }
-        
-        // a m t  
-    }
+  while (position < final_position)
+  {
+    scanf("%c",&n);
+    printf("\n---------------------------inicio de ciclo---------------------------------------\n");      
+    printf("mad road speeds:\n");
+    for(int i = 0;i <= final_position;i++)
+      printf(" %d,%d ->",max_road_speed[i],i);
+    printf("\n");
 
-    if (speed*(speed + 1)/2 == final_position - position)
-    {
-        for(new_speed = speed+1;new_speed >= speed;new_speed--)
-        {
-            if(new_speed >= 1 && new_speed <= _max_road_speed_ && position + new_speed <= final_position)
-            {
-               if(no_execed_limit_speed(position,new_speed,final_position))
-                {              
-                    position+=new_speed;
-                    speed=new_speed;
-                    move_number+=1;
-                    solution_1.positions[move_number] = position;
-                    break; 
-                } 
-            }
-        }// m t    
-    }
+    printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, speed, final_position);
 
-    if (speed*(speed + 1)/2 > final_position - position)
-    {   
-        new_speed = speed - 1;
-        if(new_speed >= 1 && new_speed <= _max_road_speed_ && position + new_speed <= final_position)
+    switch (option(position,speed,final_position))
+    {
+    case 1: 
+      printf("t\n");
+      new_speed = speed - 1;
+      printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, new_speed, final_position);
+      if(new_speed >= 1 && new_speed <= _max_road_speed_ && no_execed_road_length(position,new_speed,final_position))
+      {
+        if (solution_1.positions[move_number].position+new_speed==final_position && new_speed !=1)
         {
-           if(no_execed_limit_speed(position,new_speed,final_position))
-            {              
-                position+=new_speed;
-                speed=new_speed;
-                move_number+=1;
-                solution_1.positions[move_number] = position;
-                     
+          printf("go back\n");
+          int index = move_number;
+          
+          while (true)
+          {
+            int acelaration = solution_1.positions[index].speed - solution_1.positions[index-1].speed;
+
+            if (acelaration == 1)
+            {
+              position--;
+              speed--;
+              solution_1.positions[move_number].position-=1;
+              solution_1.positions[move_number].speed-=1;
+              break;
             } 
-        }        
-        // t   
+            else if (acelaration == 0)
+            {
+              position--;
+              speed--;
+              solution_1.positions[move_number].position-=1;
+              solution_1.positions[move_number].speed-=1;
+              break;
+            } 
+            else
+            {
+              index--;
+            }
+          }
+        }
+        else 
+        {
+          if(no_execed_limit_speed(position,new_speed,final_position))
+          {
+          printf("op: -1 veloc: %d\n", new_speed);              
+          position+=new_speed;
+          speed=new_speed;
+          move_number+=1;
+          solution_1.positions[move_number].position = position; 
+          solution_1.positions[move_number].speed = speed; 
+          break; 
+          }
+          else
+          {
+            printf("voltar atras\n");
+            int index = move_number;
+            while (true)
+            {
+              int acelaration = solution_1.positions[index].speed - solution_1.positions[index-1].speed;
+
+              if (acelaration == 1)
+              {
+                position--;
+                speed--;
+                solution_1.positions[move_number].position-=1;
+                solution_1.positions[move_number].speed-=1;
+                break;
+              } 
+              else if (acelaration == 0)
+              {
+                position--;
+                speed--;
+                solution_1.positions[move_number].position-=1;
+                solution_1.positions[move_number].speed-=1;
+                break;
+              } 
+              else
+              {
+                index--;
+              }
+            }
+          }
+          
+        } 
+      } 
+      else
+      {
+        printf("voltar atras\n");
+        int index = move_number;
+        while (true)
+        {
+          int acelaration = solution_1.positions[index].speed - solution_1.positions[index-1].speed;
+
+          if (acelaration == 1)
+          {
+            position--;
+            speed--;
+            solution_1.positions[move_number].position-=1;
+            solution_1.positions[move_number].speed-=1;
+            break;
+          } 
+          else if (acelaration == 0)
+          {
+            position--;
+            speed--;
+            solution_1.positions[move_number].position-=1;
+            solution_1.positions[move_number].speed-=1;
+            break;
+          } 
+          else
+          {
+            index--;
+          }
+        }
+      }
+      break;
+  
+    case 2:
+      printf("m t\n");
+      for(new_speed = speed+1;new_speed >= speed;new_speed--)
+      {
+        int cont = 0;
+        printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, new_speed, final_position);
+        if(new_speed >= 1 && new_speed <= _max_road_speed_ && no_execed_road_length(position,new_speed,final_position))
+        {
+          if (solution_1.positions[move_number].position+new_speed==final_position && new_speed !=1)
+          {
+            printf("pass\n");
+          }
+          else 
+          {
+            if(no_execed_limit_speed(position,new_speed,final_position))
+            {
+            printf("op: %d veloc: %d\n",cont, new_speed);              
+            position+=new_speed;
+            speed=new_speed;
+            move_number+=1;
+            solution_1.positions[move_number].position = position; 
+            solution_1.positions[move_number].speed = speed; 
+            break; 
+            }
+          } 
+        }
+        --cont;
+      }
+      break;
+    case 3:
+      printf("a m t\n");
+      for(new_speed = speed+1;new_speed >= speed-1;new_speed--)
+      {
+        int cont = 1;
+        printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, new_speed, final_position);
+        if(new_speed >= 1 && new_speed <= _max_road_speed_ && no_execed_road_length(position,new_speed,final_position)) 
+        {
+          if (solution_1.positions[move_number].position+new_speed==final_position && new_speed !=1)
+          {
+            printf("pass\n");
+          }
+          else 
+          {
+            if(no_execed_limit_speed(position,new_speed,final_position))
+            {
+            printf("op: %d veloc: %d\n",cont, new_speed);              
+            position+=new_speed;
+            speed=new_speed;
+            move_number+=1;
+            solution_1.positions[move_number].position = position; 
+            solution_1.positions[move_number].speed = speed; 
+            break; 
+            }
+            else if (new_speed == speed-1)
+            {
+              printf("voltar atras\n{");
+              int index = move_number;
+              while (true)
+              {
+                int acelaration = solution_1.positions[index].speed - solution_1.positions[index-1].speed;
+                printf("solution_1.positions[%d].speed - solution_1.positions[%d].speed\n",index,index-1);
+                printf("aceleracao: %d\n",acelaration);
+                if (acelaration == 1)
+                {
+                  printf("acelaration == 1\n");
+                  position--;
+                  speed--;
+                  solution_1.positions[move_number].position-=1;
+                  solution_1.positions[move_number].speed-=1;
+                  break;
+                } 
+                else if (acelaration == 0)
+                {
+                  printf("acelaration == 0\n");
+                  position--;
+                  speed--;
+                  solution_1.positions[move_number].position-=1;
+                  solution_1.positions[move_number].speed-=1;
+                  break;
+                } 
+                else
+                {
+                  printf("acelaration == -1\n");
+                  index--;
+                  move_number--;
+                  position=solution_1[index].position;
+                  speed=solution_1[index].speed;
+                  printf("index: %d\n",index);
+                }
+              }
+              printf("}fim\n");
+            }
             
-    }
+          }                  
+        } 
+        cont--; 
+      }
+      break;        
+    }   
+       
     solution_1_count++;
+    printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, speed, final_position);
+    printf("---------------------------fim de ciclo---------------------------------------\n\n");
   }   
-    
+  solution_1.n_moves=move_number;
 }
 
 static void solve_3(int final_position)
@@ -189,7 +399,7 @@ static void solve_3(int final_position)
   solution_1_elapsed_time = cpu_time();
   solution_1_count = 0ul;
   solution_1.n_moves = final_position + 100;  
-  solution_3(0,0,0,final_position);
+  solution3(0,0,0,final_position);
   solution_1_elapsed_time = cpu_time() - solution_1_elapsed_time;
 }
 
@@ -214,19 +424,27 @@ static void example(void)
   srandom(0xAED2022);
   init_road_speeds();  
   solve_3(final_position);  
-  make_custom_pdf_file(name_pdf,final_position,&max_road_speed[0],solution_1.n_moves,&solution_1.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
+  make_custom_pdf_file(name_pdf,final_position,&max_road_speed[0],solution_1.n_moves,&solution_1.positions[0].position,solution_1_elapsed_time,solution_1_count,"Plain recursion");
+  printf("               :");
+  for(i = 0;i <= final_position;i++)
+    printf(" %d",i);
+  printf("\n");  
   printf("mad road speeds:");
   for(i = 0;i <= final_position;i++)
     printf(" %d",max_road_speed[i]);
   printf("\n");
   printf("positions:");
   for(i = 0;i <= solution_1.n_moves;i++)
-    printf(" %d",solution_1.positions[i]);
+    printf(" %d",solution_1.positions[i].position);
   printf("\n");
-  printf("moves: %d", solution_1.n_moves);
+  printf("speed    :");
+  for(i = 0;i <= solution_1.n_moves;i++)
+    printf(" %d",solution_1.positions[i].speed);
+  printf("\n");
+  printf("moves: %ld\n", solution_1.n_moves);
+  printf("iteraçoes: %d", solution_1_count);
   printf("\n");
 }
-
 
 //
 // main program
@@ -267,7 +485,7 @@ int main(int argc,char *argv[argc + 1])
       if(print_this_one != 0)
       {
         sprintf(file_name,"%03d_1.pdf",final_position);
-        make_custom_pdf_file(file_name,final_position,&max_road_speed[0],solution_1.n_moves,&solution_1.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
+        make_custom_pdf_file(file_name,final_position,&max_road_speed[0],solution_1.n_moves,&solution_1.positions[0].position,solution_1_elapsed_time,solution_1_count,"Plain recursion");
       }
       printf(" %3d %16lu %9.3e |",solution_1.n_moves,solution_1_count,solution_1_elapsed_time);
     }
