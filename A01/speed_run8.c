@@ -68,24 +68,42 @@ typedef struct
 }
 solution_t;
 
+typedef struct data
+{
+  int position;
+  int speed;
+  int level;
+}
+data_t;
+
 typedef struct node
 {
   int position;
   int speed;
   int level;
-  struct node *prev;
+  data_t prev;
 }
 node_t;
 
-static node_t new_node(int position, int speed, int level, node_t *prev)
+static data_t new_data(int position, int speed, int level)
 {
-    node_t n;
-    n.position=position;
-    n.speed=speed;
-    n.level=level;
-    n.prev=prev;
+  data_t n;
+  n.position=position;
+  n.speed=speed;
+  n.level=level;
 
-    return n;
+  return n;
+}
+
+static node_t new_node(int position, int speed, int level, data_t prev)
+{
+  node_t n;
+  n.position=position;
+  n.speed=speed;
+  n.level=level;
+  n.prev=prev;
+
+  return n;
 }
 
 static bool no_execed_limit_speed (int position, int speed)
@@ -108,20 +126,18 @@ static bool no_execed_limit_speed (int position, int speed)
   return speed <= min; 
 }
 
-
-
-static void new_ramification(node_t childs[],node_t *n){
-    
+static void new_ramification(node_t childs[],node_t *n)
+{    
   int new_speed;
   int index=0;
-  bool cut = n->prev->speed != 1 || n->prev->position == 1;
-  printf("entrou\n");
+  bool cut = n->prev.speed != 1 || n->prev.position == 1; 
 
   if (n->speed==1 && n->position !=1)
   {
     if (no_execed_limit_speed(n->position,n->speed) && cut)
-    {               
-      childs[index]=new_node(n->position+1,1,n->level+1,n->prev);                
+    { 
+      data_t data = new_data(n->position,n->speed,n->level);              
+      childs[index]=new_node(n->position+1,1,n->level+1,data);                
     }
   }
   else
@@ -129,21 +145,17 @@ static void new_ramification(node_t childs[],node_t *n){
     for(new_speed = n->speed - 1;new_speed <= n->speed + 1;new_speed++)
     {
       if (new_speed >= 1 && new_speed <= _max_road_speed_)
-      {
-          
-        if (no_execed_limit_speed(n->position,n->speed))
+      {          
+        if (no_execed_limit_speed(n->position,new_speed))
         { 
-          printf("acabou\n");              
-          childs[index]=new_node(n->position+new_speed,new_speed,n->level+1,n->prev);                
+          data_t data = new_data(n->position,n->speed,n->level);                       
+          childs[index]=new_node(n->position+new_speed,new_speed,n->level+1,data);                
         }
       }      
       index++;
     }
-  }   
-            
+  }           
 }
-
-
 
 int number_of_childs(node_t line[], int size_line)
 { 
@@ -152,16 +164,33 @@ int number_of_childs(node_t line[], int size_line)
   for (int index = 0; index < size_line; index++)
   {
     ptr_line = &line[index];
-    if (ptr_line->speed == 1 && ptr_line->prev->speed ==1)
+    if (ptr_line->speed == 1 && ptr_line->prev.speed ==1)
     {
-      n_childs+=0;
-    } else if (ptr_line->speed == 1 && ptr_line->prev->speed !=1)
+      if (ptr_line->prev.position == 1)
+      {
+        n_childs+=1;
+      }
+      else
+      {
+        n_childs+=0;
+      }     
+    } 
+    else if (ptr_line->speed == 1 && ptr_line->prev.speed !=1)
     {
       n_childs+=1;
     }
     else
     {
-      n_childs+=3;
+      for(int new_speed = ptr_line->speed - 1;new_speed <= ptr_line->speed + 1;new_speed++)
+      {
+        if (new_speed >= 1 && new_speed <= _max_road_speed_)
+        {          
+          if (no_execed_limit_speed(ptr_line->position,new_speed))
+          { 
+            n_childs+=1;                
+          }
+        } 
+      }      
     }   
     
   }
@@ -170,44 +199,49 @@ int number_of_childs(node_t line[], int size_line)
 
 void inic_line (node_t n[], int length)
 {
-    for (int i = 0; i < length; i++)
-    {
-        n[i].position=0;
-        n[i].speed=0;
-        n[i].level=0;
-    }
+  for (int i = 0; i < length; i++)
+  {
+    n[i].position=0;
+    n[i].speed=0;
+    n[i].level=0;
+  }
 }
 
 void transp_values(node_t n1[],node_t n2[], int length)
 {
-    for (int i = 0; i < length; i++)
-    {
-        n1[i].level=n2[i].level;
-        n1[i].position=n2[i].position;
-        n1[i].speed=n2[i].speed;
-    }    
+  for (int i = 0; i < length; i++)
+  {
+    n1[i].level=n2[i].level;
+    n1[i].position=n2[i].position;
+    n1[i].speed=n2[i].speed;
+    n1[i].prev=n2[i].prev;
+  }    
+}
+
+void print_data (data_t n)
+{  
+  printf("%d,%d,%d",n.position,n.speed,n.level);  
 }
 
 void print_nodes (node_t n[], int size)
 {
   for (int i = 0; i < size; i++)
   {
-    printf("%d,%d,%d ->",n[i].position,n[i].speed,n[i].level);
+    printf("%d,%d,%d, (",n[i].position,n[i].speed,n[i].level);
+    print_data(n[i].prev);
+    printf(") -> ");
   }
   printf("\n");
 }
 
-void print_node (node_t n)
-{  
-  printf("%d,%d,%d ->",n.position,n.speed,n.level);  
-}
+
 
 void solution_2 (int s[], int last_position)
 {
   last_position++;
   s = calloc(last_position,sizeof(int));    
   
-  int level = 0;
+  int level = 1;
   int size_line_n = 1;
   int size_line_n_1 = 2;
   node_t *line_n = malloc(size_line_n*sizeof(node_t));
@@ -217,14 +251,15 @@ void solution_2 (int s[], int last_position)
   inic_line(line_n,size_line_n);
   inic_line(line_n_1,size_line_n_1);
   node_t childs[3];
-  node_t roat = new_node(0,0,0,NULL);    
-  line_n[0]=new_node(1,1,1,&roat);
+  data_t roat = new_data(0,0,0);    
+  line_n[0]=new_node(1,1,1,roat);
+
   for (int i = 0; i < 3; i++)
   {
     childs[i].position=0;
     childs[i].speed=0;
     childs[i].level=0;
-    childs[i].prev=NULL;
+    childs[i].prev=roat;
   }
 
   printf("\nInicio\n");    
@@ -242,34 +277,34 @@ void solution_2 (int s[], int last_position)
   printf("\n");
   
   int n=0;
-  char next;
+  //char next;
   node_t *ptr_line_n;
   node_t *ptr_childs;
   while (s[last_position-1] == 0)
   {   
-    scanf("%c",&next);
+    //scanf("%c",&next);
     
     printf("\n----------------------------------ciclo %d---------------------------------------------------- \n\n",n);
     n++;
     
     int index_n_1 = 0;
-
+    print_nodes(line_n,size_line_n);
     for (int index_n = 0; index_n < size_line_n; index_n++)
     {      
       ptr_line_n = &line_n[index_n];
-      print_nodes(ptr_line_n,size_line_n);
-      printf("%d\n",size_line_n);
-      printf("%d,%d,%d // %d\n",ptr_line_n->position, ptr_line_n->speed, ptr_line_n->speed, index_n);
+      
+      //printf("%d\n",size_line_n);
+      //printf("%d,%d,%d // %d\n",ptr_line_n->position, ptr_line_n->speed, ptr_line_n->speed, index_n);
       
       
       if (ptr_line_n->position != 0 || level == 0)
       {   
-        print_nodes(line_n,size_line_n);
+        //print_nodes(line_n,size_line_n);
         new_ramification(childs,ptr_line_n);
-        printf("childs: ");
+        printf("\nchilds of %d,%d,%d: ", ptr_line_n->position, ptr_line_n->speed, ptr_line_n->level);
         for (int i = 0; i < 3; i++)
         {
-          printf("%d,%d,%d ->",childs[i].position,childs[i].speed,childs[i].level);
+          printf("%d,%d,%d /",childs[i].position,childs[i].speed,childs[i].level);
         }
         printf("\n\n");
 
@@ -278,13 +313,13 @@ void solution_2 (int s[], int last_position)
           ptr_childs=&childs[i];
           if (ptr_childs->position != 0)
           {   
-            printf("index_n_1:%d\n",index_n_1);
+            //printf("index_n_1:%d\n",index_n_1);
             line_n_1[index_n_1]=childs[i];
             index_n_1++;
-            printf("index_n_1:%d\n",index_n_1);
+            //printf("index_n_1:%d\n",index_n_1);
           }                   
         }
-        print_nodes(line_n_1,size_line_n_1);
+        //print_nodes(line_n_1,size_line_n_1);
         printf("\n");               
       }   
         
@@ -345,13 +380,13 @@ void solution_2 (int s[], int last_position)
       childs[i].position=0;
       childs[i].speed=0;
       childs[i].level=0;
-      childs[i].prev=&roat;
-    }
-
-    printf("%d,%d,%d // %d\n",ptr_line_n->position, ptr_line_n->speed, ptr_line_n->speed, ptr_line_n->prev);
+      childs[i].prev=roat;
+    }    
     ptr_line_n=NULL;
       
-  }   
+  }
+  free(line_n);
+  free(line_n_1);
      
 }
 
