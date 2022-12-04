@@ -158,7 +158,7 @@ static void new_ramification(node_t childs[],node_t *n)
   }           
 }
 
-int number_of_childs(node_t line[], int size_line)
+int number_of_children(node_t line[], int size_line)
 { 
   int n_childs = 0;
   node_t *ptr_line;
@@ -235,9 +235,16 @@ void print_nodes (node_t n[], int size)
   printf("\n");
 }
 
+node_t father (data_t d)
+{
+  node_t n;
+  n.level=d.level-1;
+
+}
 
 
-void solution_2 (int s[], int last_position)
+
+void solution_4 (int s[], int last_position)
 {
   last_position++;
   s = calloc(last_position,sizeof(int));    
@@ -261,64 +268,29 @@ void solution_2 (int s[], int last_position)
     childs[i].speed=0;
     childs[i].level=0;
     childs[i].prev=roat;
-  }
-
-  printf("\nInicio\n");    
-  printf("\nline_n: ");
-  print_nodes(line_n,size_line_n);
-  printf("\n");
-  printf("line_n_1: ");
-  print_nodes(line_n_1,size_line_n_1);
-  printf("\n");
-  printf("childs: ");
-  for (int i = 0; i < 3; i++)
-  {
-    printf("%d,%d,%d ->",childs[i].position,childs[i].speed,childs[i].level);
-  }
-  printf("\n");
+  }  
   
-  int n=0;
-  //char next;
   node_t *ptr_line_n;
   node_t *ptr_childs;
   while (s[last_position-1] == 0)
   {   
-    //scanf("%c",&next);
     
-    printf("\n----------------------------------ciclo %d---------------------------------------------------- \n\n",n);
-    n++;
-    
-    int index_n_1 = 0;
-    //print_nodes(line_n,size_line_n);
+    int index_n_1 = 0;    
     for (int index_n = 0; index_n < size_line_n; index_n++)
     {      
-      ptr_line_n = &line_n[index_n];
-      
-      //printf("%d\n",size_line_n);
-      //printf("%d,%d,%d // %d\n",ptr_line_n->position, ptr_line_n->speed, ptr_line_n->speed, index_n);
-      
+      ptr_line_n = &line_n[index_n];     
       
       if (ptr_line_n->position != 0 || level == 0)
-      {   
-        //print_nodes(line_n,size_line_n);
-        new_ramification(childs,ptr_line_n);
-        /*printf("\nchilds of %d,%d,%d: ", ptr_line_n->position, ptr_line_n->speed, ptr_line_n->level);
-        for (int i = 0; i < 3; i++)
-        {
-          printf("%d,%d,%d /",childs[i].position,childs[i].speed,childs[i].level);
-        }
-        printf("\n\n");*/
+      {        
+        new_ramification(childs,ptr_line_n);      
 
         for (int i = 0; i < 3; i++)
         {
           ptr_childs=&childs[i];
           if (ptr_childs->position != 0)
-          {   
-            //printf("index_n_1:%d\n",index_n_1);
-            //assert(index_n_1<size_line_n_1);
+          {             
             line_n_1[index_n_1]=childs[i];
-            index_n_1++;
-            //printf("size_line_n_1:%d\n",size_line_n_1);
+            index_n_1++;            
           }                   
         }
 
@@ -329,46 +301,20 @@ void solution_2 (int s[], int last_position)
           childs[i].level=0;
           childs[i].prev=roat;
         }
-        //print_nodes(line_n_1,size_line_n_1);
-        //printf("\n");               
+                   
       }   
         
     }
     index_n_1 = 0;
-    /*printf("\n\nantes da alocacao de memoria\n\n");
-    printf("line_n: ");
-    print_nodes(line_n,size_line_n);
-    printf("line_n_1: ");
-    print_nodes(line_n_1,size_line_n_1);*/
-
-    level++;
-    //printf("level: %d\n", level);        
+    level++;           
     size_line_n = size_line_n_1;
-    size_line_n_1 = number_of_childs(line_n_1,size_line_n_1);
-    printf("size_line_n_1 :%d\n",size_line_n_1);
-    printf("size_line_n :%d\n",size_line_n);
+    size_line_n_1 = number_of_children(line_n_1,size_line_n_1);    
     free(line_n);
-    line_n=malloc((size_line_n+1)*sizeof(node_t));
-    //realloc(&line_n,(size_line_n+1)*sizeof(node_t));
-    transp_values(line_n,line_n_1,size_line_n);
-
-
-    //printf("line_n: ");
-    //print_nodes(line_n,size_line_n);
-
+    line_n=malloc((size_line_n+1)*sizeof(node_t));    
+    transp_values(line_n,line_n_1,size_line_n);    
     free(line_n_1);
     line_n_1= malloc((size_line_n_1)*sizeof(node_t));
     inic_line(line_n_1,size_line_n_1);
-    
-
-    /*printf("\n\ndepois da alocacao de memoria\n\n");
-    printf("size_line_n_1 :%d\n",size_line_n_1);
-    printf("size_line_n :%d\n",size_line_n);
-    printf("line_n: ");
-    print_nodes(line_n,size_line_n);
-    printf("line_n_1: ");
-    print_nodes(line_n_1,size_line_n_1);*/
-
 
     for (int index_n = 0; index_n < size_line_n; index_n++)
     {   
@@ -382,17 +328,18 @@ void solution_2 (int s[], int last_position)
       }          
     }
 
-    for (int i = 0; i < last_position; i++)
-    {
-      printf("%d, %d\n",i,s[i]);
-    }    
+        
         
     ptr_line_n=NULL;
       
   }
   free(line_n);
   free(line_n_1);
-     
+
+  for (int i = 0; i < last_position; i++)
+  {
+    printf("Final Position:%d | Best Moves:%d\n",i,s[i]);
+  }   
 }
 
 //
@@ -469,10 +416,10 @@ static void example(void)
   printf("\n");
   printf("moves: %d", solution_1_best.n_moves);
   printf("\n");*/
-  int s[final_position+1];
+  int *s;
   solution_2(s,final_position);
-  for(i = 0;i <= final_position;i++)
-    printf("%d, %d\n",i,s[i]);
+  for(i = 0;i < final_position;i++)
+    printf("%3d, %3d\n",i,s[i]);
 
 }
 
