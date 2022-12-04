@@ -29,6 +29,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <assert.h>
 #include "../P02/elapsed_time.h"
 #include "make_custom_pdf.c"
 
@@ -288,7 +289,7 @@ void solution_2 (int s[], int last_position)
     n++;
     
     int index_n_1 = 0;
-    print_nodes(line_n,size_line_n);
+    //print_nodes(line_n,size_line_n);
     for (int index_n = 0; index_n < size_line_n; index_n++)
     {      
       ptr_line_n = &line_n[index_n];
@@ -301,12 +302,12 @@ void solution_2 (int s[], int last_position)
       {   
         //print_nodes(line_n,size_line_n);
         new_ramification(childs,ptr_line_n);
-        printf("\nchilds of %d,%d,%d: ", ptr_line_n->position, ptr_line_n->speed, ptr_line_n->level);
+        /*printf("\nchilds of %d,%d,%d: ", ptr_line_n->position, ptr_line_n->speed, ptr_line_n->level);
         for (int i = 0; i < 3; i++)
         {
           printf("%d,%d,%d /",childs[i].position,childs[i].speed,childs[i].level);
         }
-        printf("\n\n");
+        printf("\n\n");*/
 
         for (int i = 0; i < 3; i++)
         {
@@ -314,49 +315,62 @@ void solution_2 (int s[], int last_position)
           if (ptr_childs->position != 0)
           {   
             //printf("index_n_1:%d\n",index_n_1);
+            //assert(index_n_1<size_line_n_1);
             line_n_1[index_n_1]=childs[i];
             index_n_1++;
-            //printf("index_n_1:%d\n",index_n_1);
+            //printf("size_line_n_1:%d\n",size_line_n_1);
           }                   
         }
+
+        for (int i = 0; i < 3; i++)
+        {
+          childs[i].position=0;
+          childs[i].speed=0;
+          childs[i].level=0;
+          childs[i].prev=roat;
+        }
         //print_nodes(line_n_1,size_line_n_1);
-        printf("\n");               
+        //printf("\n");               
       }   
         
     }
     index_n_1 = 0;
-    printf("\n\nantes da alocacao de memoria\n\n");
+    /*printf("\n\nantes da alocacao de memoria\n\n");
     printf("line_n: ");
     print_nodes(line_n,size_line_n);
     printf("line_n_1: ");
-    print_nodes(line_n_1,size_line_n_1);
+    print_nodes(line_n_1,size_line_n_1);*/
 
-    level++;        
+    level++;
+    //printf("level: %d\n", level);        
     size_line_n = size_line_n_1;
     size_line_n_1 = number_of_childs(line_n_1,size_line_n_1);
     printf("size_line_n_1 :%d\n",size_line_n_1);
     printf("size_line_n :%d\n",size_line_n);
     free(line_n);
-    line_n=malloc(size_line_n*sizeof(node_t));
+    line_n=malloc((size_line_n+1)*sizeof(node_t));
+    //realloc(&line_n,(size_line_n+1)*sizeof(node_t));
     transp_values(line_n,line_n_1,size_line_n);
 
 
-    printf("line_n: ");
-    print_nodes(line_n,size_line_n);
+    //printf("line_n: ");
+    //print_nodes(line_n,size_line_n);
 
     free(line_n_1);
-    line_n_1= malloc(size_line_n_1*sizeof(node_t));
+    line_n_1= malloc((size_line_n_1)*sizeof(node_t));
     inic_line(line_n_1,size_line_n_1);
     
 
-    printf("\n\ndepois da alocacao de memoria\n\n");
+    /*printf("\n\ndepois da alocacao de memoria\n\n");
+    printf("size_line_n_1 :%d\n",size_line_n_1);
+    printf("size_line_n :%d\n",size_line_n);
     printf("line_n: ");
     print_nodes(line_n,size_line_n);
     printf("line_n_1: ");
-    print_nodes(line_n_1,size_line_n_1);
+    print_nodes(line_n_1,size_line_n_1);*/
 
 
-    for (int index_n = 0; index_n < pow(3,level); index_n++)
+    for (int index_n = 0; index_n < size_line_n; index_n++)
     {   
       ptr_line_n = &line_n[index_n];            
       if (ptr_line_n->speed == 1)
@@ -371,17 +385,8 @@ void solution_2 (int s[], int last_position)
     for (int i = 0; i < last_position; i++)
     {
       printf("%d, %d\n",i,s[i]);
-    }
-
-
-    
-    for (int i = 0; i < 3; i++)
-    {
-      childs[i].position=0;
-      childs[i].speed=0;
-      childs[i].level=0;
-      childs[i].prev=roat;
     }    
+        
     ptr_line_n=NULL;
       
   }
@@ -468,7 +473,6 @@ static void example(void)
   solution_2(s,final_position);
   for(i = 0;i <= final_position;i++)
     printf("%d, %d\n",i,s[i]);
-
 
 }
 

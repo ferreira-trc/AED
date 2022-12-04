@@ -67,16 +67,6 @@ typedef struct
 }
 solution_t;
 
-typedef struct
-{
-    int speed;
-    int
-    int final_position;
-    
-};
-
-
-
 //
 // the (very inefficient) recursive solution given to the students
 //
@@ -84,10 +74,18 @@ typedef struct
 static solution_t solution_1,solution_1_best;
 static double solution_1_elapsed_time; // time it took to solve the problem
 static unsigned long solution_1_count; // effort dispended solving the problem
+int data [1 + _max_road_size_][10];
+
+
 
 static void solution_1_recursion(int move_number,int position,int speed,int final_position)
 {
   int i,new_speed;
+  if (data[position][speed]>move_number)
+  {
+    data[position][speed]=move_number;
+  }
+  
 
   // record move
   solution_1_count++;
@@ -104,13 +102,27 @@ static void solution_1_recursion(int move_number,int position,int speed,int fina
     return;
   }
   // no, try all legal speeds
-  for(new_speed = speed - 1;new_speed <= speed + 1;new_speed++)
+  for(new_speed = speed + 1;new_speed <= speed - 1;new_speed--)
+  {
     if(new_speed >= 1 && new_speed <= _max_road_speed_ && position + new_speed <= final_position)
     {
       for(i = 0;i <= new_speed && new_speed <= max_road_speed[position + i];i++);
       if(i > new_speed)
-        solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);        
+      {
+        if (data[position + new_speed][new_speed]<move_number + 1)
+        {
+          solution_1_recursion(data[position + new_speed][new_speed],position + new_speed,new_speed,final_position);
+        }
+        else
+        {          
+          solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);          
+        }
+        
+        
+      }                
     }
+  }
+    
 }
 
 static void solve_1(int final_position)
@@ -135,6 +147,14 @@ static void solve_1(int final_position)
 static void example(void)
 {
   int i,final_position;
+
+  for(int line = 0; line < 800; line++)
+  {
+    for(int col = 0; col < 10; col++)
+    {
+      data[line][col]=0;
+    }  
+  }
 
   srandom(0xAED2022);
   init_road_speeds();
@@ -171,6 +191,13 @@ int main(int argc,char *argv[argc + 1])
     return 0;
   }
   // initialization
+  for(int line = 0; line < 800; line++)
+  {
+    for(int col = 0; col < 10; col++)
+    {
+      data[line][col]=0;
+    }  
+  }
   n_mec = (argc < 2) ? 0xAED2022 : atoi(argv[1]);
   srandom((unsigned int)n_mec);
   init_road_speeds();
