@@ -28,6 +28,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "../P02/elapsed_time.h"
 #include "make_custom_pdf.c"
 
@@ -68,15 +69,132 @@ solution_t;
 
 typedef struct node
 {
-    int position;
-    int moves[10];
-    int pos[10];
+  int position;
+  int speed;
+  int level;
+  bool visited;
+  node_t* father;
+  node_t* left;
+  node_t* midel;
+  node_t* right;
+  
 }
 node_t;
 
+static node_t new_node(int position, int speed, int level, bool visited, node_t* father)
+{
+  node_t* n;
+  n->position=position;
+  n->speed=speed;
+  n->level=level;
+  n->visited=visited;
+  n->father=father;
+  n->left=NULL;
+  n->midel=NULL;
+  n->right=NULL;
+  return n;
+}
 
+static bool no_execed_limit_speed (int position, int speed)
+{  
+  int min = max_road_speed[position];
 
+  for (int index = position+1; index <= position + speed; index++)
+  {
+    if (max_road_speed[index] == _min_road_speed_)
+    {
+      min = _min_road_speed_;
+      break;
+    }
+    
+    if (min > max_road_speed[index])
+    {
+      min = max_road_speed[index];
+    }    
+  }
+  return speed <= min; 
+}
 
+static void new_ramification(node_t children[],node_t *n)
+{    
+  int new_speed;
+  int index=0;
+  bool cut = n->prev.speed != 1 || n->prev.position == 1; 
+
+  if (n->speed==1 && n->position !=1)
+  {
+    if (no_execed_limit_speed(n->position,n->speed) && cut)    
+    {              
+      children[index]=new_node(n->position+1,1,n->level+1,false,n);                
+    }
+  }
+  else
+  {
+    for(new_speed = n->speed - 1;new_speed <= n->speed + 1;new_speed++)
+    {
+      if (new_speed >= 1 && new_speed <= _max_road_speed_)
+      {          
+        if (no_execed_limit_speed(n->position,new_speed))
+        {                                
+          children[index]=new_node(n->position+new_speed,new_speed,n->level+1,false,n);                
+        }
+      }      
+      index++;
+    }
+  }           
+}
+
+typedef struct
+{
+  node_t *top, *bottom;
+  unsigned int length;
+} 
+Stack;
+
+Stack new_stack()
+{
+  Stack stack;
+  stack.top=NULL;
+  stack.bottom=NULL;
+  stack.length=0;
+  return stack;
+}
+
+// inserção no início da stack
+void push(Stack *stack, node_t n)
+{
+  node_t *new = (node_t*)malloc(sizeof(node_t)); // cria um novo nó
+  new->n = n;// (*novo).valor = valor
+
+  if(stack->top == NULL) { // a stack está vazia
+    new->next = NULL;
+    stack->top = new;
+    stack->bottom = new;
+  } else { // a stack não está vazia
+    new->next = stack->top;
+    stack->top = new;
+  }
+  stack->length++;
+}
+
+// remover um elemento da stack
+void pop(Stack *stack) 
+{
+  
+  node_t * noARemover = NULL; // ponteiro para o nó a ser removido
+
+  // remover 1º elemento
+  noARemover = stack->top;
+  stack->top = noARemover->next;
+
+  if(stack->top == NULL)
+    stack->bottom = NULL;   
+  
+  if(noARemover) {
+      free(noARemover); // libera a memória do nó
+      stack->length--; // decrementa o tamanho da stack
+  }
+}
 
 //
 // the (very inefficient) recursive solution given to the students
@@ -108,8 +226,7 @@ static void solution_1_recursion(int move_number,int position,int speed,int fina
   for(new_speed = speed - 1;new_speed <= speed + 1;new_speed++)
     if(new_speed >= 1 && new_speed <= _max_road_speed_ && position + new_speed <= final_position)
     {
-      for(i = 0;i <= new_speed && new_speed <= max_road_speed[position + i];i++)
-        ;
+      for(i = 0;i <= new_speed && new_speed <= max_road_speed[position + i];i++);
       if(i > new_speed)
         solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);
     }
@@ -129,7 +246,42 @@ static void solve_1(int final_position)
   solution_1_elapsed_time = cpu_time() - solution_1_elapsed_time;
 }
 
+static solution_t solution_2;
+static double solution_2_elapsed_time; // time it took to solve the problem
+static unsigned long solution_2_count; // effort dispended solving the problem
 
+
+static void solution_2(int move_number,int position,int speed,int final_position)
+{
+  Stack stack = new_stack();
+  node_t roat = new_node(0,0,0,true,NULL);
+  node_t* children = calloc(3,sizeof(node_t));
+  push(&stack,roat);
+
+  while (position < final_position)
+  {
+    bool cond = stack.top->father->speed==1
+    if ()
+    {
+      /* code */
+    }
+    
+    new_ramification(children,stack.top);
+    
+    for (int i = 2; i => 0; i--)
+    {
+      if (children[i].position!=0)
+      {
+        push(stack,children[i])
+      }      
+    }
+         
+  }
+  
+
+
+
+}
 //
 // example of the slides
 //

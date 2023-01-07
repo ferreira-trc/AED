@@ -116,8 +116,7 @@ static void solution_1_recursion(int move_number,int position,int speed,int fina
         else
         {          
           solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);          
-        }
-        
+        }       
         
       }                
     }
@@ -183,7 +182,7 @@ int main(int argc,char *argv[argc + 1])
 # define _time_limit_  3600.0
   int n_mec,final_position,print_this_one;
   char file_name[64];
-
+  example();
   // generate the example data
   if(argc == 2 && argv[1][0] == '-' && argv[1][1] == 'e' && argv[1][2] == 'x')
   {

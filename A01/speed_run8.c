@@ -103,7 +103,6 @@ static node_t new_node(int position, int speed, int level, data_t prev)
   n.speed=speed;
   n.level=level;
   n.prev=prev;
-
   return n;
 }
 
@@ -233,13 +232,6 @@ void print_nodes (node_t n[], int size)
     printf(") -> ");
   }
   printf("\n");
-}
-
-node_t father (data_t d)
-{
-  node_t n;
-  n.level=d.level-1;
-
 }
 
 

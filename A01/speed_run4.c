@@ -76,6 +76,7 @@ solution_t;
 static solution_t solution_2,solution_2_best;
 static double solution_2_elapsed_time; // time it took to solve the problem
 static unsigned long solution_2_count; // effort dispended solving the problem
+int moves[1+_max_road_size_][10];
 
 static bool no_execed_limit_speed (int position, int speed, int final_position)
 {  
@@ -102,9 +103,46 @@ static bool no_execed_road_length (int position, int speed, int final_position)
   return position+speed <= final_position;
 }
 
+static bool verify_over_speed(int new_speed, int position,int final_position) // true if new speed goes over the road limit
+{  
+  bool b = false;
+
+  if (new_speed < 2)
+  {
+    b = false;
+  }
+  else
+  {
+    for (int i = new_speed; i > 1; i--)
+    {
+      if (no_execed_limit_speed(position+new_speed,new_speed,final_position))
+      {
+        b = false;
+      }
+      else
+      {
+        b = true;
+        break;
+      }    
+    }
+  }
+  return b;
+}
+
 static void solution_2_recursion(int move_number,int position,int speed,int final_position)
 {
   int i,new_speed;
+  if (moves[position][speed]==0)
+  {
+    moves[position][speed]=move_number;
+  } 
+  else if (moves[position][speed]>move_number)
+  {
+    moves[position][speed]=move_number;
+  }
+  
+  
+  moves[position][speed]=move_number;
 
   // record move
   solution_2_count++;
@@ -130,8 +168,22 @@ static void solution_2_recursion(int move_number,int position,int speed,int fina
       if(new_speed >= 1 && new_speed <= _max_road_speed_ && no_execed_road_length(position,new_speed,final_position))
       {                 
         if(no_execed_limit_speed(position,new_speed,final_position))
-        {              
-          solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+        { 
+          if (verify_over_speed(new_speed,position+new_speed,final_position) == false)
+          {
+            if (move_number <= moves[final_position-1][1]+1  && final_position > 1)
+            {
+              solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position); 
+            } 
+            else if (moves[final_position-1][1] == 0)
+            {
+              solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+            }          
+            else 
+            {
+              solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+            }
+          }            
         }             
       }
     }  
@@ -145,7 +197,21 @@ static void solution_2_recursion(int move_number,int position,int speed,int fina
       {                 
         if(no_execed_limit_speed(position,new_speed,final_position))
         {              
-          solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+          if (verify_over_speed(new_speed,position+new_speed,final_position) == false)
+          {
+            if (move_number <= moves[final_position-1][1]+1  && final_position > 1)
+            {
+              solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position); 
+            } 
+            else if (moves[final_position-1][1] == 0)
+            {
+              solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+            }          
+            else 
+            {
+              solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+            }
+          }
         }             
       }
     }  
@@ -155,11 +221,25 @@ static void solution_2_recursion(int move_number,int position,int speed,int fina
   {
     new_speed = speed - 1;
     
-    if(new_speed >= 1 && new_speed <= _max_road_speed_ && no_execed_road_length(position,new_speed,final_position))
+    if(new_speed >= 1 && new_speed <= _max_road_speed_ && no_execed_road_length(position,new_speed,final_position)==0)
     {                 
       if(no_execed_limit_speed(position,new_speed,final_position))
       {              
-        solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+        if (verify_over_speed(new_speed,position+new_speed,final_position) == false)
+        {
+          if (move_number <= moves[final_position-1][1]+1  && final_position > 1)
+          {
+            solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position); 
+          } 
+          else if (moves[final_position-1][1] == 0)
+          {
+            solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+          }          
+          else 
+          {
+            solution_2_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+          }
+        }
       }             
     }      
   }    
@@ -171,12 +251,13 @@ static void solve_2(int final_position)
   {
     fprintf(stderr,"solve_1: bad final_position\n");
     exit(1);
-  }  
-  solution_3_elapsed_time = cpu_time();
+  }   
+  solution_2_elapsed_time = cpu_time();
   solution_2_count = 0ul;
   solution_2_best.n_moves = final_position + 100;  
   solution_2_recursion(0,0,0,final_position);
-  solution_1_elapsed_time = cpu_time() - solution_1_elapsed_time;
+  moves[final_position][1]=solution_2_best.n_moves;
+  solution_2_elapsed_time = cpu_time() - solution_2_elapsed_time;
 }
 
 
@@ -198,9 +279,16 @@ static void example(void)
   strcat(name_pdf,ext);
 
   srandom(0xAED2022);
-  init_road_speeds();  
+  init_road_speeds();
+  for (int i = 0; i < _max_road_size_+1; i++)
+  {
+    for (int j = 0; j <= 9; j++)
+    {
+      moves[i][j]=0;
+    }    
+  }  
   solve_2(final_position);  
-  make_custom_pdf_file(name_pdf,final_position,&max_road_speed[0],solution_2_best.n_moves,&solution_2_best.positions[0],solution_1_elapsed_time,solution_2_count,"Plain recursion");
+  make_custom_pdf_file(name_pdf,final_position,&max_road_speed[0],solution_2_best.n_moves,&solution_2_best.positions[0],solution_2_elapsed_time,solution_2_count,"Plain recursion");
   printf("mad road speeds:");
   for(i = 0;i <= final_position;i++)
     printf(" %d",max_road_speed[i]);
@@ -211,6 +299,15 @@ static void example(void)
   printf("\n");
   printf("moves: %d", solution_2_best.n_moves);
   printf("\n");
+  for (int i = 0; i < final_position; i++)
+  {
+    printf("P%3d: ",i);
+    for (int j = 0; j <= 9; j++)
+    {
+      printf("%d ",moves[i][j]);
+    }
+    printf("\n");
+  }
 }
 
 
@@ -236,7 +333,7 @@ int main(int argc,char *argv[argc + 1])
   init_road_speeds();
   // run all solution methods for all interesting sizes of the problem
   final_position = 1;
-  solution_1_elapsed_time = 0.0;
+  solution_2_elapsed_time = 0.0;
   printf("    + --- ---------------- --------- +\n");
   printf("    |                plain recursion |\n");
   printf("--- + --- ---------------- --------- +\n");
@@ -247,15 +344,15 @@ int main(int argc,char *argv[argc + 1])
     print_this_one = (final_position == 10 || final_position == 20 || final_position == 50 || final_position == 100 || final_position == 200 || final_position == 400 || final_position == 800) ? 1 : 0;
     printf("%3d |",final_position);
     // first solution method (very bad)
-    if(solution_1_elapsed_time < _time_limit_)
+    if(solution_2_elapsed_time < _time_limit_)
     {
       solve_2(final_position);
       if(print_this_one != 0)
       {
         sprintf(file_name,"%03d_1.pdf",final_position);
-        make_custom_pdf_file(file_name,final_position,&max_road_speed[0],solution_2_best.n_moves,&solution_2_best.positions[0],solution_1_elapsed_time,solution_2_count,"Plain recursion");
+        make_custom_pdf_file(file_name,final_position,&max_road_speed[0],solution_2_best.n_moves,&solution_2_best.positions[0],solution_2_elapsed_time,solution_2_count,"Plain recursion");
       }
-      printf(" %3d %16lu %9.3e |",solution_2_best.n_moves,solution_2_count,solution_1_elapsed_time);
+      printf(" %3d %16lu %9.3e |",solution_2_best.n_moves,solution_2_count,solution_2_elapsed_time);
     }
     else
     {

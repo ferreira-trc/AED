@@ -92,18 +92,20 @@ typedef struct No
 } 
 No_t;
 
-typedef struct {
+typedef struct
+{
   No_t *top, *bottom;
   unsigned int length;
 } 
 Stack;
 
-Stack new_stack(){
-    Stack stack;
-    stack.top=NULL;
-    stack.bottom=NULL;
-    stack.length=0;
-    return stack;
+Stack new_stack()
+{
+  Stack stack;
+  stack.top=NULL;
+  stack.bottom=NULL;
+  stack.length=0;
+  return stack;
 }
 
 // inserção no início da stack

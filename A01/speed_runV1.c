@@ -147,7 +147,7 @@ static void example(void)
 
   srandom(0xAED2022);
   init_road_speeds();
-  final_position = 30;
+  final_position = 100;
   solve_1(final_position);
   make_custom_pdf_file("example.pdf",final_position,&max_road_speed[0],solution.n_moves,&solution.positions[0],solution_elapsed_time,solution_3_count,"Plain recursion");
   printf("mad road speeds:");

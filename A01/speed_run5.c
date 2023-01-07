@@ -114,6 +114,41 @@ static bool no_execed_road_length (int position, int speed, int final_position)
   return position+speed <= final_position;
 }
 
+void go_back()
+{
+  printf("go back\n");
+          int index = move_number;
+          
+          while (true)
+          {
+            int acelaration = solution_1.positions[index].speed - solution_1.positions[index-1].speed;
+
+            if (acelaration == 1)
+            {
+              position--;
+              speed--;
+              solution_1.positions[move_number].position-=1;
+              solution_1.positions[move_number].speed-=1;
+              break;
+            } 
+            else if (acelaration == 0)
+            {
+              position--;
+              speed--;
+              solution_1.positions[move_number].position-=1;
+              solution_1.positions[move_number].speed-=1;
+              break;
+            } 
+            else
+            {
+              index--;
+              move_number--;
+              position=solution_1.positions[index].position;
+              speed=solution_1.positions[index].speed;
+            }
+          }
+}
+
 
 
 static int braking_dist(int speed)
@@ -151,27 +186,27 @@ static int option (int position, int speed, int final_position)
 static void solution3(int move_number,int position,int speed,int final_position)
 {
   int new_speed;
-  char n;  
+  //char n;  
   
   // restrição de algumas possibilidades 
 
   while (position < final_position)
   {
-    scanf("%c",&n);
-    printf("\n---------------------------inicio de ciclo---------------------------------------\n");      
-    printf("mad road speeds:\n");
+    //scanf("%c",&n);
+    //printf("\n---------------------------inicio de ciclo---------------------------------------\n");      
+    /*printf("mad road speeds:\n");
     for(int i = 0;i <= final_position;i++)
       printf(" %d,%d ->",max_road_speed[i],i);
-    printf("\n");
+    printf("\n");*/
 
-    printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, speed, final_position);
+    //printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, speed, final_position);
 
     switch (option(position,speed,final_position))
     {
     case 1: 
-      printf("t\n");
+      //printf("t\n");
       new_speed = speed - 1;
-      printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, new_speed, final_position);
+      //printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, new_speed, final_position);
       if(new_speed >= 1 && new_speed <= _max_road_speed_ && no_execed_road_length(position,new_speed,final_position))
       {
         if (solution_1.positions[move_number].position+new_speed==final_position && new_speed !=1)
@@ -202,6 +237,9 @@ static void solution3(int move_number,int position,int speed,int final_position)
             else
             {
               index--;
+              move_number--;
+              position=solution_1.positions[index].position;
+              speed=solution_1.positions[index].speed;
             }
           }
         }
@@ -209,7 +247,7 @@ static void solution3(int move_number,int position,int speed,int final_position)
         {
           if(no_execed_limit_speed(position,new_speed,final_position))
           {
-          printf("op: -1 veloc: %d\n", new_speed);              
+          //printf("op: -1 veloc: %d\n", new_speed);              
           position+=new_speed;
           speed=new_speed;
           move_number+=1;
@@ -219,7 +257,7 @@ static void solution3(int move_number,int position,int speed,int final_position)
           }
           else
           {
-            printf("voltar atras\n");
+            //printf("voltar atras\n");
             int index = move_number;
             while (true)
             {
@@ -244,15 +282,17 @@ static void solution3(int move_number,int position,int speed,int final_position)
               else
               {
                 index--;
+                move_number--;
+                position=solution_1.positions[index].position;
+                speed=solution_1.positions[index].speed;
               }
             }
-          }
-          
+          }          
         } 
       } 
       else
       {
-        printf("voltar atras\n");
+        //printf("voltar atras\n");
         int index = move_number;
         while (true)
         {
@@ -283,22 +323,56 @@ static void solution3(int move_number,int position,int speed,int final_position)
       break;
   
     case 2:
-      printf("m t\n");
+      //printf("m t\n");
       for(new_speed = speed+1;new_speed >= speed;new_speed--)
       {
         int cont = 0;
-        printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, new_speed, final_position);
+        //printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, new_speed, final_position);
         if(new_speed >= 1 && new_speed <= _max_road_speed_ && no_execed_road_length(position,new_speed,final_position))
         {
           if (solution_1.positions[move_number].position+new_speed==final_position && new_speed !=1)
           {
-            printf("pass\n");
+            //printf("voltar atras\n{");
+              int index = move_number;
+              while (true)
+              {
+                int acelaration = solution_1.positions[index].speed - solution_1.positions[index-1].speed;
+                //printf("solution_1.positions[%d].speed - solution_1.positions[%d].speed\n",index,index-1);
+                //printf("aceleracao: %d\n",acelaration);
+                if (acelaration == 1)
+                {
+                  //printf("acelaration == 1\n");
+                  position--;
+                  speed--;
+                  solution_1.positions[move_number].position-=1;
+                  solution_1.positions[move_number].speed-=1;
+                  break;
+                } 
+                else if (acelaration == 0)
+                {
+                  //printf("acelaration == 0\n");
+                  position--;
+                  speed--;
+                  solution_1.positions[move_number].position-=1;
+                  solution_1.positions[move_number].speed-=1;
+                  break;
+                } 
+                else
+                {
+                  //printf("acelaration == -1\n");
+                  index--;
+                  move_number--;
+                  position=solution_1.positions[index].position;
+                  speed=solution_1.positions[index].speed;
+                  //printf("index: %d\n",index);
+                }
+              }  
           }
           else 
           {
             if(no_execed_limit_speed(position,new_speed,final_position))
             {
-            printf("op: %d veloc: %d\n",cont, new_speed);              
+            //printf("op: %d veloc: %d\n",cont, new_speed);              
             position+=new_speed;
             speed=new_speed;
             move_number+=1;
@@ -312,22 +386,56 @@ static void solution3(int move_number,int position,int speed,int final_position)
       }
       break;
     case 3:
-      printf("a m t\n");
+      //printf("a m t\n");
       for(new_speed = speed+1;new_speed >= speed-1;new_speed--)
       {
         int cont = 1;
-        printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, new_speed, final_position);
+        //printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, new_speed, final_position);
         if(new_speed >= 1 && new_speed <= _max_road_speed_ && no_execed_road_length(position,new_speed,final_position)) 
         {
           if (solution_1.positions[move_number].position+new_speed==final_position && new_speed !=1)
           {
-            printf("pass\n");
+            //printf("voltar atras\n{");
+              int index = move_number;
+              while (true)
+              {
+                int acelaration = solution_1.positions[index].speed - solution_1.positions[index-1].speed;
+                //printf("solution_1.positions[%d].speed - solution_1.positions[%d].speed\n",index,index-1);
+                //printf("aceleracao: %d\n",acelaration);
+                if (acelaration == 1)
+                {
+                  //printf("acelaration == 1\n");
+                  position--;
+                  speed--;
+                  solution_1.positions[move_number].position-=1;
+                  solution_1.positions[move_number].speed-=1;
+                  break;
+                } 
+                else if (acelaration == 0)
+                {
+                  //printf("acelaration == 0\n");
+                  position--;
+                  speed--;
+                  solution_1.positions[move_number].position-=1;
+                  solution_1.positions[move_number].speed-=1;
+                  break;
+                } 
+                else
+                {
+                  //printf("acelaration == -1\n");
+                  index--;
+                  move_number--;
+                  position=solution_1.positions[index].position;
+                  speed=solution_1.positions[index].speed;
+                  //printf("index: %d\n",index);
+                }
+              }
           }
           else 
           {
             if(no_execed_limit_speed(position,new_speed,final_position))
             {
-            printf("op: %d veloc: %d\n",cont, new_speed);              
+            //printf("op: %d veloc: %d\n",cont, new_speed);              
             position+=new_speed;
             speed=new_speed;
             move_number+=1;
@@ -337,16 +445,16 @@ static void solution3(int move_number,int position,int speed,int final_position)
             }
             else if (new_speed == speed-1)
             {
-              printf("voltar atras\n{");
+              //printf("voltar atras\n{");
               int index = move_number;
               while (true)
               {
                 int acelaration = solution_1.positions[index].speed - solution_1.positions[index-1].speed;
-                printf("solution_1.positions[%d].speed - solution_1.positions[%d].speed\n",index,index-1);
-                printf("aceleracao: %d\n",acelaration);
+                //printf("solution_1.positions[%d].speed - solution_1.positions[%d].speed\n",index,index-1);
+                //printf("aceleracao: %d\n",acelaration);
                 if (acelaration == 1)
                 {
-                  printf("acelaration == 1\n");
+                  //printf("acelaration == 1\n");
                   position--;
                   speed--;
                   solution_1.positions[move_number].position-=1;
@@ -355,7 +463,7 @@ static void solution3(int move_number,int position,int speed,int final_position)
                 } 
                 else if (acelaration == 0)
                 {
-                  printf("acelaration == 0\n");
+                  //printf("acelaration == 0\n");
                   position--;
                   speed--;
                   solution_1.positions[move_number].position-=1;
@@ -364,15 +472,15 @@ static void solution3(int move_number,int position,int speed,int final_position)
                 } 
                 else
                 {
-                  printf("acelaration == -1\n");
+                  //printf("acelaration == -1\n");
                   index--;
                   move_number--;
-                  position=solution_1[index].position;
-                  speed=solution_1[index].speed;
-                  printf("index: %d\n",index);
+                  position=solution_1.positions[index].position;
+                  speed=solution_1.positions[index].speed;
+                  //printf("index: %d\n",index);
                 }
               }
-              printf("}fim\n");
+              //printf("}fim\n");
             }
             
           }                  
@@ -383,8 +491,8 @@ static void solution3(int move_number,int position,int speed,int final_position)
     }   
        
     solution_1_count++;
-    printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, speed, final_position);
-    printf("---------------------------fim de ciclo---------------------------------------\n\n");
+    //printf("Nº de movimentos: %d posição: %d veloc: %d final: %d\n",move_number, position, speed, final_position);
+    //printf("---------------------------fim de ciclo---------------------------------------\n\n");
   }   
   solution_1.n_moves=move_number;
 }

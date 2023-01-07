@@ -28,6 +28,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "../P02/elapsed_time.h"
 #include "make_custom_pdf.c"
 
@@ -74,13 +75,13 @@ solution_t;
 static solution_t solution_1,solution_1_best;
 static double solution_1_elapsed_time; // time it took to solve the problem
 static unsigned long solution_1_count; // effort dispended solving the problem
+int moves[1+_max_road_size_];
 
-static int limit_speed (int position, int speed)
-{
-  
+static bool no_execed_limit_speed (int position, int speed, int final_position)
+{  
   int min = max_road_speed[position];
 
-  for (int index = position; index < speed; index++)
+  for (int index = position+1; index <= position + speed && index <= final_position; index++)
   {
     if (max_road_speed[index] == _min_road_speed_)
     {
@@ -92,9 +93,37 @@ static int limit_speed (int position, int speed)
     {
       min = max_road_speed[index];
     }    
-  } 
+  }
+  return speed <= min; 
+}
 
-  return min; 
+static bool verify_over_speed(int new_speed, int position,int final_position) // true if new speed goes over the road limit
+{  
+  bool b = false;
+
+  if (new_speed < 2)
+  {
+    b = false;
+  }
+  else
+  {
+    for (int i = new_speed; i > 1; i--)
+    {
+      if (no_execed_limit_speed(position+new_speed,new_speed,final_position))
+      {
+        b = false;
+      }
+      else
+      {
+        b = true;
+        break;
+      }    
+    }
+  }
+  
+
+  
+  return b;  
 }
 
 static void solution_1_recursion(int move_number,int position,int speed,int final_position)
@@ -114,7 +143,7 @@ static void solution_1_recursion(int move_number,int position,int speed,int fina
     {
       //printf("best\n");
       solution_1_best = solution_1;
-      solution_1_best.n_moves = move_number;
+      solution_1_best.n_moves = move_number;      
     }
     return;
   }
@@ -123,11 +152,13 @@ static void solution_1_recursion(int move_number,int position,int speed,int fina
     if(new_speed >= 1 && new_speed <= _max_road_speed_ && position + new_speed <= final_position)
     // verifica que a veloc. é =>1 que a nova veloc. nao ultrupassa o limite max e o movimento nao ultrapassa a fronteira
     {
-      //for(i = 0;i <= new_speed && new_speed <= max_road_speed[position + i];i++);
-      if(new_speed <= limit_speed(position,new_speed)) // verificar limite de veloc.
+      for(int i = 0;i <= new_speed && new_speed <= max_road_speed[position + i];i++);
+      if(no_execed_limit_speed(position,new_speed,final_position) ) // verificar limite de veloc.
       {
-        //printf("i=%d\nspeed=%d\nnew_speed=%d\nP=%d\n\n", i, speed, new_speed, position);
-        solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position);
+        if (verify_over_speed(new_speed,position+new_speed,final_position) == false)
+        {
+          solution_1_recursion(move_number + 1,position + new_speed,new_speed,final_position); 
+        }       
       }  
     }
 
@@ -145,8 +176,10 @@ static void solve_1(int final_position)
   solution_1_count = 0ul;
   //printf("%ld\n", solution_1_count);
   solution_1_best.n_moves = final_position + 100;
-  //printf("%d\n", solution_1_best.n_moves);
+  //printf("%d\n", moves[final_position]);
   solution_1_recursion(0,0,0,final_position);
+  moves[final_position]=solution_1_best.n_moves;
+  //printf("%d\n", moves[final_position]);
   solution_1_elapsed_time = cpu_time() - solution_1_elapsed_time;
 }
 
@@ -162,7 +195,12 @@ static void example(void)
   srandom(0xAED2022);
   init_road_speeds();
   final_position = 5;
-  solve_1(final_position);
+  for (int i = 1; i <= final_position; i++)
+  {
+    solve_1(i);
+  }
+  
+  
   make_custom_pdf_file("example.pdf",final_position,&max_road_speed[0],solution_1_best.n_moves,&solution_1_best.positions[0],solution_1_elapsed_time,solution_1_count,"Plain recursion");
   printf("mad road speeds:");
   for(i = 0;i <= final_position;i++)
@@ -171,6 +209,10 @@ static void example(void)
   printf("positions:");
   for(i = 0;i <= solution_1_best.n_moves;i++)
     printf(" %d",solution_1_best.positions[i]);
+  printf("\n");
+  printf("moves: %d\n",solution_1_best.n_moves);
+  for(i = 0;i <= final_position;i++)
+    printf(" %d",moves[i]);
   printf("\n");
 }
 
@@ -184,7 +226,7 @@ int main(int argc,char *argv[argc + 1])
 # define _time_limit_  3600.0
   int n_mec,final_position,print_this_one;
   char file_name[64];
-
+  example(); 
   // generate the example data
   if(argc == 2 && argv[1][0] == '-' && argv[1][1] == 'e' && argv[1][2] == 'x')
   {   
