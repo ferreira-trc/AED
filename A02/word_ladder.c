@@ -63,7 +63,7 @@ typedef struct hash_table_s      hash_table_t;
 
 struct adjacency_node_s
 {
-  adjacency_node_t *next;            // link to th enext adjacency list node
+  adjacency_node_t *next;            // link to the next adjacency list node
   hash_table_node_t *vertex;         // the other vertex
 };
 
@@ -129,6 +129,7 @@ static hash_table_node_t *allocate_hash_table_node(void)
   node->number_of_vertices=0;
   node->representative=node;
   node->visited=0;
+  node->previous=NULL;
   return node;
 }
 
@@ -201,8 +202,7 @@ void add_node(hash_table_node_t** head, const char *word)
   
 
   if (*head == NULL)
-  {
-    new_node->previous=NULL;
+  {    
     *head=new_node;    
   }
   else
@@ -216,7 +216,7 @@ void add_node(hash_table_node_t** head, const char *word)
     
     current_node->next = new_node;
   }
-  printf("-> ");  
+  //printf("-> ");  
 }
 
 void insert_into_table(hash_table_t *hash_table, const char *word, unsigned int index)
@@ -237,7 +237,7 @@ void insert_into_table(hash_table_t *hash_table, const char *word, unsigned int 
     heads[index] = head;
   }
   hash_table->number_of_entries+=1;
-  printf("-> ");
+  //printf("-> ");
 }
 
 static void hash_table_grow(hash_table_t *hash_table)
@@ -270,9 +270,26 @@ static void hash_table_grow(hash_table_t *hash_table)
 
 static void hash_table_free(hash_table_t *hash_table)
 {
-  //
-  // complete this
-  //
+  for (unsigned int i = 0; i < hash_table->hash_table_size; i++)
+  {
+    hash_table_node_t* head = hash_table->heads[i];
+
+    while (head != NULL)
+    {
+      hash_table_node_t *current_node = head;
+      adjacency_node_t *current_node_adjs = head->head;
+
+      while (current_node_adjs != NULL)
+      {
+        adjacency_node_t * aux = current_node_adjs->next;
+        free(aux);
+      }
+      head->next;
+      free(current_node);      
+    }
+    
+  }
+  free(hash_table->heads);
   free(hash_table);
 }
 
@@ -290,9 +307,9 @@ static hash_table_node_t *find_word(hash_table_t *hash_table,const char *word,in
 
   if (insert_if_not_found)
   {
-    printf("%s %d",word,i);
+    //printf("%s %d",word,i);
     insert_into_table(hash_table,word,i);
-    printf(" entrie: %d\n",hash_table->number_of_entries);
+    //printf(" entrie: %d\n",hash_table->number_of_entries);
   }
   else
   {
@@ -302,8 +319,7 @@ static hash_table_node_t *find_word(hash_table_t *hash_table,const char *word,in
     {
       node=node->next;
     }  
-  }
-  
+  } 
   
   return node;
 }
@@ -316,10 +332,18 @@ static hash_table_node_t *find_word(hash_table_t *hash_table,const char *word,in
 static hash_table_node_t *find_representative(hash_table_node_t *node)
 {
   hash_table_node_t *representative,*next_node;
+  int number_of_vertices, number_of_edges;               
 
-  //
-  // complete this
-  //
+  
+  representative = node;
+  
+  while (representative->representative != representative) {    
+    next_node = representative->representative;   
+    representative->representative = next_node->representative;    
+    representative = next_node;
+    next_node->number_of_edges;
+  }  
+  
   return representative;
 }
 
@@ -329,9 +353,43 @@ static void add_edge(hash_table_t *hash_table,hash_table_node_t *from,const char
   adjacency_node_t *link;
 
   to = find_word(hash_table,word,0);
-  //
-  // complete this
-  //
+  printf("Aqui");
+  link = allocate_adjacency_node();
+   printf("Aqui");
+  link->vertex=to;
+  link->next=NULL;  
+
+  // add the edge from->to
+  if (from->head == NULL)
+  {
+    from->head=link;
+  }
+  else
+  {
+    adjacency_node_t *current_node = from->head;
+
+    while (current_node->next != NULL && current_node->vertex != to)
+    {
+      current_node = current_node->next;
+    }
+    // assigment if not there 
+    if (current_node->vertex != to)
+    {
+      current_node->next=link;
+    }
+  }
+  
+  hash_table->number_of_edges+=1;
+
+  from_representative = find_representative(from);
+  to_representative = find_representative(to);
+
+  // union 
+  if (from_representative != to_representative)
+  {
+    from->representative=to_representative;
+  } 
+  
 }
 
 
