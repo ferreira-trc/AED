@@ -319,22 +319,28 @@ static hash_table_node_t *find_word(hash_table_t *hash_table,const char *word,in
     //printf("%s %d",word,i);
     insert_into_table(hash_table,word,i);
     //printf(" entrie: %d\n",hash_table->number_of_entries);
+    node = NULL;
   }
   else
   {
-    printf("%s\n",word);
-    printf("entrou no find_word\n%d\n",i);
+    //printf("%s\n",word);
+    //printf("entrou no find_word\n%d\n",i);
     node = hash_table->heads[i];
     printf("%s\n", node->word);
 
-    while (node != NULL && strcmp(node->word, word) != 0)
+    while (node->next != NULL && strcmp(node->word, word) != 0)
     {
+      //printf("while\n");
       node=node->next;
     }  
   } 
-  
+
+  //printf("%s\n", node->word);
+
   return node;
 }
+
+
 
 static int average(int n[], int length)
 {
@@ -381,7 +387,7 @@ static int mode(int n[], int length)
 
   for (int i = 0; i < appearances_length; i++)
   {
-    appearances[1]=0;
+    appearances[i]=0;
   }  
 
   for (int i = 0; i < length; i++)
@@ -392,7 +398,6 @@ static int mode(int n[], int length)
   return max_value(appearances,appearances_length);
   
 }
-
 
 static void statistics_hash_table(hash_table_t *hash_table)
 {
@@ -438,6 +443,33 @@ static void statistics_hash_table(hash_table_t *hash_table)
   int mod = mode(number_nodes, hash_table->hash_table_size);
 }
 
+static void print_table(hash_table_t *hash_table)
+{
+  hash_table_node_t** current_node = hash_table->heads; 
+
+  for (unsigned int i = 0; i < hash_table->hash_table_size; i++)
+  {
+    
+    printf("%8d   -", i);    
+
+    if (current_node[i] == NULL)
+    {
+      printf(" NULL\n");
+    } 
+    else 
+    {
+      hash_table_node_t* itr = current_node[i];
+
+      while (itr != NULL)
+      { 
+        printf("%s -> ",itr->word);       
+        itr = itr->next;        
+      }
+      printf("\n");
+    }        
+  }
+}
+
 
 //
 // add edges to the word ladder graph (mostly do be done)
@@ -465,53 +497,55 @@ static void add_edge(hash_table_t *hash_table,hash_table_node_t *from,const char
 {
   if (hash_table->heads[hash_function(word,hash_table->hash_table_size)] != NULL)
   {
-    printf("add_edge -> %s\n", from->word);
+    //printf("add_edge -> %s\n", from->word);
     hash_table_node_t *to,*from_representative,*to_representative;
     adjacency_node_t *link;
-    printf("antes find_word\n");
-    to = find_word(hash_table,word,0);
-    printf("%s\n", to->word);
-    printf("depois find_word\n");
-    link = allocate_adjacency_node();
-    printf("Aqui\n");
-    printf("%s\n", to->word);
-    link->vertex=to;
-    link->next=NULL;  
+    //printf("antes find_word\n");
+    to = find_word(hash_table,word,0); // O problema esta aqui
+    //printf("depois find_word\n");
+    printf("%s\n", to->word); // o erro aparece aqui
 
-    // add the edge from->to
-    
-    if (from->head == NULL)
+    if (to != NULL)
     {
-      from->head=link;
-    }
-    else
-    {
-      adjacency_node_t *current_node = from->head;
+      link = allocate_adjacency_node();
+      //printf("Aqui\n");
+      //printf("%s\n", to->word);
+      link->vertex=to;
+      link->next=NULL;  
 
-      while (current_node != NULL && current_node->vertex != to)
+      // add the edge from->to
+      
+      if (from->head == NULL)
       {
-        current_node = current_node->next;
+        from->head=link;
       }
-      // assigment if not there 
-      if (current_node->vertex != to)
+      else
       {
-        current_node->next=link;
+        adjacency_node_t *current_node = from->head;
+
+        while (current_node != NULL && current_node->vertex != to)
+        {
+          current_node = current_node->next;
+        }
+        // assigment if not there 
+        if (current_node->vertex != to)
+        {
+          current_node->next=link;
+        }
       }
-    }
-    
-    hash_table->number_of_edges+=1;
+      
+      hash_table->number_of_edges+=1;
 
-    /*from_representative = find_representative(from);
-    to_representative = find_representative(to);
+      from_representative = find_representative(from);
+      to_representative = find_representative(to);
 
-    // union 
-    if (from_representative != to_representative)
-    {
-      from->representative=to_representative;
-    }*/
-  }  
-  
-  
+      // union 
+      if (from_representative != to_representative)
+      {
+        from->representative=to_representative;
+      }
+    } 
+  } 
 }
 
 
@@ -701,13 +735,18 @@ int main(int argc,char **argv)
     (void)find_word(hash_table,word,1);
   fclose(fp);
   //statistics_hash_table(hash_table);
+  
+  print_table(hash_table);
+  //printf("%s\n",hash_table->heads[999999]->word);
   // find all similar words
+  //hash_table_node_t *nod = find_word(hash_table,"hebraizar-lhe-ias",0);
+  //printf("%s\n", nod->word);
   for(i = 0u;i < hash_table->hash_table_size;i++)
   {    
     for(node = hash_table->heads[i];node != NULL;node = node->next)
     {
-      printf("%d %s size: %d\n",hash_function(node->word,hash_table->hash_table_size), node->word, hash_table->hash_table_size);
-      printf("idx: %d size: %d crc32: %d\n", crc32(node->word)%hash_table->hash_table_size, hash_table->hash_table_size, crc32(node->word));
+      //printf("%d %s size: %d\n",hash_function(node->word,hash_table->hash_table_size), node->word, hash_table->hash_table_size);
+      //printf("idx: %d size: %d crc32: %d\n", crc32(node->word)%hash_table->hash_table_size, hash_table->hash_table_size, crc32(node->word));
       //char n = scanf(" carrega enter %c");
       similar_words(hash_table,node);
     }      
